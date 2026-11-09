@@ -1,0 +1,25 @@
+# --- Source force field ---
+source leaprc.protein.ff14SB
+source leaprc.lipid21
+source leaprc.gaff2
+source leaprc.water.tip3p
+
+# --- Load the ligand (MOL2) ---
+# This assigns GAFF2 parameters and generates charges if not present
+loadamberparams ligand.frcmod
+ligand = loadmol2 "ligand.mol2"
+
+# --- Load the existing protein + water box ---
+# If you have a PDB with protein+water:
+complex = loadpdb "protein_packed.pdb"
+
+# OR if you have an existing prmtop/inpcrd pair:
+# complex = loadamberparams "old_prmtop.prmtop"
+# complex = loadrst7 "old_inpcrd.inpcrd"
+
+# --- Add the ligand to the system ---
+combined = combine {complex ligand}
+
+# --- Save output files ---
+saveamberparm combined new_complex.prmtop new_complex.inpcrd
+quit

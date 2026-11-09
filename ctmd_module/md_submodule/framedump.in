@@ -1,0 +1,4 @@
+parm PRMTOP
+trajin XTC_TRAJ 1 1 1
+trajout PDB_OUT pdb
+run

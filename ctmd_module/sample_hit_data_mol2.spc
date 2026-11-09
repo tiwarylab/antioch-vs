@@ -1,0 +1,10 @@
+Z16720247_pose1_docked.mol2 True 0
+Z356406252_pose1_docked.mol2 True 0
+Z4762546680_pose1_docked.mol2 True 0
+Z4898952333_pose1_docked.mol2 True 0
+Z5129818600_pose1_docked.mol2 True 0
+Z52476999_pose1_docked.mol2 True 0
+Z5551411873_pose1_docked.mol2 True 0
+Z6301492972_pose1_docked.mol2 True 0
+Z70759805_pose1_docked.mol2 True 0
+Z9411778928_pose1_docked.mol2 True 0

@@ -1,0 +1,13 @@
+name: chimera_env
+channels:
+  - conda-forge
+dependencies:
+  - libgl
+  - python=3.11
+  - xorg-libsm
+  - xorg-libxft
+  - xorg-libxrender
+  - xorg-libxscrnsaver
+  - pip:
+    - meson==1.11.1
+    - ninja==1.13.0

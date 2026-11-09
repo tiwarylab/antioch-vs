@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>3Dmol Test</title>
+<script src="https://3dmol.csb.pitt.edu/build/3Dmol.js"></script>
+<style>
+#viewer { width: 800px; height: 600px; border: 2px solid red; }
+</style>
+</head>
+<body>
+<h1>3Dmol.js Test</h1>
+<div id="viewer"></div>
+<pre id="log"></pre>
+<script>
+var log = document.getElementById("log");
+function l(msg) { 
+    try {
+        log.textContent += msg + "\n"; 
+        console.log(msg); 
+    } catch(e) { console.error("Log error:", e); }
+}
+
+window.onerror = function(msg, url, line) {
+    l("JS ERROR: " + msg + " at line " + line);
+    return false;
+};
+
+l("$3Dmol version: " + $3Dmol.version);
+l("createViewer exists: " + typeof $3Dmol.createViewer);
+l("createMoleculeViewer exists: " + typeof $3Dmol.createMoleculeViewer);
+
+var viewer = $3Dmol.createViewer(document.getElementById("viewer"), {
+    backgroundColor: "white"
+});
+l("Viewer created");
+
+// Simple test PDB (just a few atoms)
+var pdb = [
+    "ATOM      1  N   ALA A   1       0.000   0.000   0.000  1.00  0.00           N",
+    "ATOM      2  CA  ALA A   1       1.458   0.000   0.000  1.00  0.00           C",
+    "ATOM      3  C   ALA A   1       2.009   1.420   0.000  1.00  0.00           C",
+    "ATOM      4  O   ALA A   1       1.246   2.390   0.000  1.00  0.00           O",
+    "ATOM      5  CB  ALA A   1       1.986  -0.761  -1.217  1.00  0.00           C",
+    "ATOM      6  N   GLY A   2       3.314   1.595   0.000  1.00  0.00           N",
+    "ATOM      7  CA  GLY A   2       3.934   2.918   0.000  1.00  0.00           C",
+    "ATOM      8  C   GLY A   2       5.367   2.828   0.000  1.00  0.00           C",
+    "ATOM      9  O   GLY A   2       5.884   1.790   0.000  1.00  0.00           O",
+    "END"
+].join("\n");
+
+var model = viewer.addModel(pdb, "pdb");
+l("Model added");
+
+viewer.setStyle({}, { stick: {} });
+viewer.zoomTo();
+viewer.render();
+l("Rendered sticks");
+
+// Check canvas
+var canvases = document.querySelectorAll("canvas");
+l("Canvases: " + canvases.length);
+if (canvases.length > 0) {
+    var c = canvases[0];
+    l("Canvas size: " + c.width + "x" + c.height);
+}
+
+// Test pick
+try {
+    var methods = [];
+    var obj = viewer;
+    while (obj && obj !== Object.prototype) {
+        Object.getOwnPropertyNames(obj).forEach(function(k) {
+            if (typeof obj[k] === 'function' && !methods.includes(k)) methods.push(k);
+        });
+        obj = Object.getPrototypeOf(obj);
+    }
+    l("Viewer methods: " + methods.join(", "));
+} catch(e) {
+    l("Method list error: " + e.message);
+}
+
+// Use setClickable + direct canvas click
+try {
+    viewer.setClickable({}, true);
+    viewer.updateClickables();
+    l("setClickable OK");
+    
+    // Attach to canvas directly after a short delay
+    setTimeout(function() {
+        var canvas = viewer.getCanvas();
+        if (canvas) {
+            canvas.addEventListener("mousedown", function(e) {
+                if (e.button !== 0) return;
+                l("Click at " + e.offsetX + "," + e.offsetY);
+                try {
+                    // Get model space position
+                    var pos = viewer.screenOffsetToModel(e.offsetX, e.offsetY, 10);
+                    l("Position: " + JSON.stringify(pos));
+                    
+                    // Get all atoms and find nearest
+                    var atoms = viewer.getAtomsFromSel({});
+                    if (atoms && atoms.length > 0) {
+                        var minDist = Infinity;
+                        var nearest = null;
+                        for (var i = 0; i < atoms.length; i++) {
+                            var a = atoms[i];
+                            var dx = a.x - pos.x;
+                            var dy = a.y - pos.y;
+                            var dz = a.z - pos.z;
+                            var dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+                            if (dist < minDist) {
+                                minDist = dist;
+                                nearest = a;
+                            }
+                        }
+                        l("Nearest: " + JSON.stringify(nearest).substring(0, 300));
+                        l("Distance: " + minDist.toFixed(2));
+                    } else {
+                        l("No atoms found");
+                    }
+                } catch(pe) {
+                    l("Error: " + pe.message);
+                }
+            });
+            l("Canvas listener attached");
+        }
+    }, 500);
+} catch(e) {
+    l("Callback error: " + e.message);
+}
+</script>
+</body>
+</html>

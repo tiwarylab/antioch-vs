@@ -1,0 +1,56 @@
+#!/bin/bash
+
+execfile=`realpath $0`
+if test -z "$DOCKFLOW_IMG"
+then
+	export DOCKFLOW_IMG=`dirname $execfile`"/../dockflow_unified.sif"
+fi
+echo $DOCKFLOW_IMG" is the dockflow image"
+if test -z "$DOCKFLOW_ROOT"
+then
+	export DOCKFLOW_ROOT=`dirname $execfile`"/../"
+fi
+echo $DOCKFLOW_ROOT" is the dockflow repo root"
+if test -z "$TMPDIR"
+then
+	export TMPDIR=/tmp
+fi
+
+mkdir -p $TMPDIR/dockflow_scratch
+if test $? -ne 0
+then
+	echo "ERR: Couldn't create folder $TMPDIR/dockflow_scratch"
+	echo "Please set TMPDIR to a writable location for keeping temporary files"
+	exit 1
+fi
+
+bind_command()
+{
+	if test $1 -eq 1
+	then
+		mkdir -p ./ligand_files ./receptor_files ./ctmd_files
+	fi
+	shift
+	singularity exec --nv --writable-tmpfs --env "PATH=$PATH:/bin/ext" --bind .:/mnt --bind `dirname $execfile`/../common_module:/usr/software/common  --bind ./ligand_files/:/dockflow_mnt/ligand_files --bind $TMPDIR/dockflow_scratch:/usr/software/dockflow/web_GUI/instance/jobs  --bind ./receptor_files/:/dockflow_mnt/receptor_files/ --bind ./ctmd_files/:/dockflow_mnt/ctmd_files $@
+	if test $? -ne 0
+	then
+		echo
+		echo "Please check you command. Allowed commands:"
+		echo "  - init (MUST BE RUN BEFORE OTHER COMMANDS)"
+		echo "  - launch (Start the pipeline on CLI)"
+		echo "  - ui (Launch a web-ui for prepartion)"
+		exit 1
+	fi
+}
+prm=0
+for p in $@
+do
+	if [ "$p" == "init" ]; then
+		prm=1
+		break
+	elif [ "$p" == "pipeline" ]; then
+		$DOCKFLOW_ROOT/full_pipeline/pipeline $@
+		exit $?
+	fi
+done
+bind_command $prm $DOCKFLOW_IMG $@

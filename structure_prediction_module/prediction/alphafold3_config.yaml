@@ -1,0 +1,34 @@
+paths:
+  input_json: "/path/to/fold_input.json"
+  output_dir: "/path/to/alphafold3_output"
+
+environment:
+  apptainer_executable: "apptainer"
+  container_image: "/path/to/alphafold3.sif"
+  model_dir: "/path/to/af3_models"
+  database_dir: "/path/to/af3_databases"
+  af2_database_dir: "/path/to/af2_databases"
+  # The AF2 database path expected INSIDE the AF3 container, which is baked into
+  # the image — not a path on this machine. Required; af2_database_dir is bound to it.
+  af2_database_mount: "/path/to/af2_databases_inside_container"
+  use_gpu: true
+  extra_binds: []
+
+execution:
+  overwrite: false
+  # Optional path. Relative paths are placed under output_dir.
+  log_file: null
+
+alphafold3:
+  runner_path: "/app/alphafold/run_alphafold.py"
+  # Uses Biopython in this environment to convert output mmCIFs to PDBs.
+  converter_python: "python"
+  normalize_mmcif_to_pdb: true
+  settings: {}
+
+# Add one entry per desired seed/sample configuration. Each entry writes to
+# output_dir/runs/<name>/ and, by default, normalized PDBs to structures/.
+runs:
+  - name: "default"
+    settings: {}
+    extra_args: []

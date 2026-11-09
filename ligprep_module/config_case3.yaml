@@ -1,0 +1,21 @@
+# Case 3: Mol2 in 4 blocks, one combined file per block
+# ── All molecules → Mol2, all molecules in a single file per block folder ──
+
+source:
+  type: "smiles"
+  path: "input_data/example.smi"
+
+smiles_conversion:
+  cpus: 16
+  batch_size: 4096
+
+processing:
+  target_format: "mol2"
+  output_dir: "case3_mol2_4blocks"
+  num_blocks: 4
+  split_files: false
+  scratch_dir: "./scratch/"
+
+logging:
+  log_file: "ligprep_case3.log"
+  verbose: true

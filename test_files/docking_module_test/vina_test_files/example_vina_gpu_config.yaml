@@ -1,0 +1,30 @@
+paths:
+  # Public AutoDock Vina 1IEP/c-Abl example.
+  # Providing receptor_pdbqt skips receptor preparation for this smoke test.
+  receptor_pdbqt: "test_files/docking_module_test/vina_test_files/receptor_dir/1iep_receptor.pdbqt"  # default in code: null; required unless receptor_pdb is set
+  receptor_pdb: ""  # default in code: null; required unless receptor_pdbqt is set
+  ligand_dir: "test_files/docking_module_test/vina_test_files/ligand_dir"  # default in code: null; required
+  output_dir: "test_files/docking_module_test/vina_test_files/docking_out_gpu"  # default in code: null; required
+  target_residues_file: ""  # default in code: null
+
+box:
+  center: "15.190 53.903 16.917"  # default in code: auto
+  size: "20 20 20"  # default in code: auto
+  padding: [0, 0, 0]  # default in code: [10.0, 10.0, 10.0]
+  target_chain: ""  # default in code: null
+
+docking:
+  thread: 1000  # default in code: not set by pipeline; Vina-GPU binary default if omitted
+  search_depth: 40  # default in code: not set by pipeline; Vina-GPU binary default if omitted
+  num_modes: 10  # default in code: not set by pipeline; Vina-GPU binary default if omitted
+
+environment:
+  mamba_env: "docking_pipeline"  # default in code: analysis
+  mamba_exe: "micromamba"  # default in code: micromamba
+
+  # Native Vina-GPU executable. Replace this with your local binary path.
+  # For Singularity, set vina_gpu_bin to an absolute .sif path and keep
+  # vina_gpu_cmd as the command inside the container, such as "run_gpu".
+  vina_gpu_bin: "/absolute/path/to/AutoDock-Vina-GPU-2-1"  # default in code: ./AutoDock-Vina-GPU-2-1
+  vina_gpu_cmd: "AutoDock-Vina-GPU-2-1"  # default in code: run_gpu
+  singularity_binds: []  # default in code: []

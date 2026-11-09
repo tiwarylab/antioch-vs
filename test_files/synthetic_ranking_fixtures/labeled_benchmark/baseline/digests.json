@@ -1,0 +1,99 @@
+{
+  "captured_by": "T007 (FR-014, Principle VIII)",
+  "captured_from": "build_unweighted_rrf_consensus.py at 24a040a, before any unlabeled-consensus edit",
+  "inputs": [
+    "rec_01=labeled_benchmark/rec_01",
+    "rec_02=labeled_benchmark/rec_02"
+  ],
+  "how_to_compare": "For each artifact, project the newly produced table onto 'columns' IN THIS ORDER and digest it. Equality means every pre-existing column holds the same values in the same row order; columns added since (coverage_succeeded, coverage_attempted, Failed_Ligands) are additive and excluded by construction.",
+  "why_not_raw_bytes": "Two reasons. (1) T021 and T023 add columns to these same artifacts, so no labeled output can stay byte-identical and still satisfy the slice; the achievable invariant is that the science did not drift. (2) Parquet embeds the writing library's version in schema metadata, so a raw byte digest reports a pandas or pyarrow upgrade as a science change.",
+  "environment": {
+    "python": "3.12.13",
+    "pandas": "3.0.5"
+  },
+  "artifacts": {
+    "consensus_all.parquet": {
+      "columns": [
+        "Ligand",
+        "Class",
+        "Rank_rec_01",
+        "Rank_rec_02",
+        "Best_Receptor_Rank",
+        "Median_Receptor_Rank",
+        "Consensus_RRF_Score",
+        "Top_0.01_Support_rec_01",
+        "Top_0.01_Support_rec_02",
+        "Top_Support_Votes",
+        "Supporting_Receptors",
+        "Consensus_Rank"
+      ],
+      "projected_sha256": "eeb54eef8bf031291ced8108e5bdb61e017380558b33b9b26358a74304fb3a55"
+    },
+    "consensus_actives.parquet": {
+      "columns": [
+        "Ligand",
+        "Class",
+        "Rank_rec_01",
+        "Rank_rec_02",
+        "Best_Receptor_Rank",
+        "Median_Receptor_Rank",
+        "Consensus_RRF_Score",
+        "Top_0.01_Support_rec_01",
+        "Top_0.01_Support_rec_02",
+        "Top_Support_Votes",
+        "Supporting_Receptors",
+        "Consensus_Rank"
+      ],
+      "projected_sha256": "02a331c825f9a462f1ca748a366f0ef55124178dcd4d19f0b2c8c2d4d2fb8174"
+    },
+    "consensus_decoys.parquet": {
+      "columns": [
+        "Ligand",
+        "Class",
+        "Rank_rec_01",
+        "Rank_rec_02",
+        "Best_Receptor_Rank",
+        "Median_Receptor_Rank",
+        "Consensus_RRF_Score",
+        "Top_0.01_Support_rec_01",
+        "Top_0.01_Support_rec_02",
+        "Top_Support_Votes",
+        "Supporting_Receptors",
+        "Consensus_Rank"
+      ],
+      "projected_sha256": "2f36599fbe471cbfd23e098ee8854dd66e1385b22580a6663c919bb0ed6187a9"
+    },
+    "consensus_top_hits.csv": {
+      "columns": [
+        "Ligand",
+        "Class",
+        "Rank_rec_01",
+        "Rank_rec_02",
+        "Best_Receptor_Rank",
+        "Median_Receptor_Rank",
+        "Consensus_RRF_Score",
+        "Top_0.01_Support_rec_01",
+        "Top_0.01_Support_rec_02",
+        "Top_Support_Votes",
+        "Supporting_Receptors",
+        "Consensus_Rank"
+      ],
+      "projected_sha256": "567786d4d92d2913d0c71137d83ada72be3ac14bb5074b5eadfe2113e679505a"
+    },
+    "consensus_manifest.csv": {
+      "columns": [
+        "Receptor",
+        "Score_Column",
+        "Scored_Ligands"
+      ],
+      "projected_sha256": "56f73864af900bbc88287469712726260e1e8433bf136d1166f718a3e9743901"
+    }
+  },
+  "file_sha256_provenance_only": {
+    "consensus_all.parquet": "32654a6dced159d29874067ab317572ce0584e02cc1e50b545bd0e4daab1d585",
+    "consensus_actives.parquet": "dc8e3f919861de83c63841f3599e0a344bf845876468b004c0ef7177e7d0b624",
+    "consensus_decoys.parquet": "1291f119244f7e053612dbfea38f1d4e9d95546984a2b094c7cdf97e800406f1",
+    "consensus_top_hits.csv": "eeb54eef8bf031291ced8108e5bdb61e017380558b33b9b26358a74304fb3a55",
+    "consensus_manifest.csv": "56f73864af900bbc88287469712726260e1e8433bf136d1166f718a3e9743901"
+  }
+}

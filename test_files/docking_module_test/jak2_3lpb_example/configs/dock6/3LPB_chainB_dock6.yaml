@@ -1,0 +1,26 @@
+paths:
+  receptor_dms: "dock6_chimera/chainB/3LPB_chainB_receptor_prepared_surf_d5.dms"  # default in code: null; required
+  receptor_mol2: "dock6_chimera/chainB/3LPB_chainB_receptor_prepared_wH_wcH.mol2"  # default in code: null; required
+  ref_ligand_mol2: "dock6_inputs/chainB/3LPB_chainB_NVB_reference_ligand.mol2"  # default in code: null; required
+  ligand_file: "dock6_inputs/chainB/3LPB_chainB_NVB_ligand.mol2"  # default in code: null; required
+  output_dir: "runs/dock6/chainB"  # default in code: null; required
+
+parameters:
+  sphere_radius: 10.0  # default in code: 10.0
+  box_margin: 8.0  # default in code: 8.0
+  max_orientations: 5000  # default in code: 1000
+  extra_flex_args:  # default in code: {}
+    num_preclustered_conformers: 50
+    num_final_scored_poses: 10
+    write_orientations: "yes"
+    simplex_max_cycles: 200
+    simplex_trans_step: 0.2
+    simplex_rot_step: 0.0873
+    simplex_anchor_max_iterations: 1000
+    simplex_grow_max_iterations: 1000
+    simplex_final_min: "yes"
+
+environment:
+  dock6_dir: "/path/to/dock6"  # default in code: /usr/local/dock6
+  dock6_executable: "/path/to/dock6/bin/dock6"  # default in code: null
+  dock6_launcher: ""  # default in code: null

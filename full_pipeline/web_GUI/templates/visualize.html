@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ANTIOCH-VS - Visualize & Select Residues</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/3Dmol/2.0.1/3Dmol-min.js"></script>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --error: #dc2626;
+            --selected: #f59e0b;
+            --radius: 12px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg); color: var(--text);
+            min-height: 100vh; display: flex; flex-direction: column;
+        }
+        header {
+            background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
+            color: white; padding: 1.2rem 2rem;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        header h1 { font-size: 1.4rem; font-weight: 700; }
+        .step-dot {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 24px; height: 24px; border-radius: 50%;
+            font-size: 0.8rem; font-weight: 600;
+        }
+        .step-dot.done { background: rgba(255,255,255,0.3); color: white; }
+        .step-dot.active { background: white; color: var(--primary); }
+        main {
+            flex: 1; max-width: 1400px; margin: 1rem auto; padding: 0 1rem; width: 100%;
+            display: grid; grid-template-columns: 1fr 340px; gap: 1rem;
+        }
+        .viewer-card {
+            background: var(--card-bg); border-radius: var(--radius);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06); border: 1px solid var(--border);
+            overflow: hidden; display: flex; flex-direction: column;
+        }
+        .viewer-header {
+            padding: 1rem 1.5rem; border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .viewer-body { flex: 1; min-height: 600px; position: relative; }
+        #viewer3d { width: 100%; height: 100%; position: absolute; inset: 0; }
+        .sidebar { display: flex; flex-direction: column; gap: 1rem; }
+        .card {
+            background: var(--card-bg); border-radius: var(--radius); padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06); border: 1px solid var(--border);
+        }
+        .card h3 { font-size: 1rem; margin-bottom: 1rem; }
+        .instructions { font-size: 0.88rem; color: var(--text-muted); line-height: 1.6; }
+        .instructions li { margin-bottom: 0.4rem; }
+        .selection-list { max-height: 350px; overflow-y: auto; font-size: 0.88rem; }
+        .selection-item {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0.5rem 0.6rem; border-radius: 6px; margin-bottom: 0.25rem;
+            background: #fffbeb; border: 1px solid #fde68a;
+        }
+        .selection-item .res-info { font-weight: 600; font-family: 'Courier New', monospace; font-size: 0.85rem; }
+        .selection-item .remove-btn {
+            background: none; border: none; color: var(--error); cursor: pointer;
+            font-size: 1.1rem; padding: 0.1rem 0.3rem; border-radius: 4px;
+        }
+        .empty-state { text-align: center; color: var(--text-muted); font-size: 0.88rem; padding: 2rem 1rem; }
+        .btn-group { display: flex; gap: 0.5rem; margin-top: 1rem; }
+        .btn {
+            flex: 1; padding: 0.75rem; border: none; border-radius: 8px;
+            font-size: 0.95rem; font-weight: 600; cursor: pointer;
+        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-secondary { background: #f1f5f9; color: var(--text); border: 1px solid var(--border); }
+
+        /* Debug Panel */
+        #debug-panel {
+            position: absolute; top: 0.5rem; right: 0.5rem;
+            background: rgba(15,23,42,0.92); color: #a5f3fc;
+            padding: 0.6rem 0.8rem; border-radius: 8px;
+            font-size: 0.78rem; font-family: 'Courier New', monospace;
+            z-index: 100; max-width: 420px; max-height: 50vh; overflow-y: auto; line-height: 1.6;
+        }
+        #debug-panel .ok { color: #4ade80; }
+        #debug-panel .err { color: #f87171; }
+        #debug-panel .warn { color: #fbbf24; }
+        #debug-panel .info { color: #93c5fd; }
+
+        @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>⚗️ ANTIOCH-VS</h1>
+    <div style="display:flex;align-items:center;gap:0.5rem;">
+        <span class="step-dot done">✓</span>
+        <span class="step-dot active">2</span>
+        <span style="font-size:0.9rem;opacity:0.85;">Select Interface Residues</span>
+    </div>
+</header>
+
+<main>
+    <div class="viewer-card">
+        <div class="viewer-header">
+            <h2>🧬 Protein Structure</h2>
+            <span style="font-size:0.85rem;color:var(--text-muted);" id="atom-count">Loading...</span>
+        </div>
+        <div class="viewer-body">
+            <div id="viewer3d"></div>
+            <div id="debug-panel">⏳ Initializing...</div>
+        </div>
+    </div>
+
+    <div class="sidebar">
+        <div class="card">
+            <h3>📋 How to Select</h3>
+            <ol class="instructions">
+                <li><strong>Click</strong> on a residue to select it</li>
+                <li>Selected residues turn <span style="color:magenta;font-weight:600;">magenta</span></li>
+                <li><strong>Shift+Click</strong> to deselect</li>
+                <li>Scroll to zoom · Drag to rotate · Right-drag to pan</li>
+            </ol>
+        </div>
+        <div class="card" style="flex:1;display:flex;flex-direction:column;">
+            <h3>✅ Selected Residues</h3>
+            <div class="selection-list" id="selection-list">
+                <div class="empty-state">No residues selected yet.</div>
+            </div>
+            <div style="font-size:0.85rem;color:var(--text-muted);margin-top:0.5rem;" id="selection-count"></div>
+            <div class="btn-group">
+                <button class="btn btn-secondary" onclick="window.clearAll()">🗑 Clear All</button>
+                <button class="btn btn-primary" onclick="window.finalizeSelection()">📦 Download ZIP</button>
+            </div>
+        </div>
+    </div>
+</main>
+
+<form id="finalize-form" action="/finalize" method="POST" style="display:none;">
+    <input type="hidden" name="selected_residues" id="selected-residues-input">
+</form>
+
+<script>
+(function() {
+    "use strict";
+
+    var dbg = document.getElementById("debug-panel");
+    function dlog(msg, cls) {
+        var line = document.createElement("div");
+        if (cls) line.className = cls;
+        line.textContent = msg;
+        dbg.appendChild(line);
+        console.log("[ANTIOCH-VS]", msg);
+    }
+
+    if (typeof $3Dmol === "undefined") {
+        dlog("ERROR: $3Dmol undefined", "err");
+        return;
+    }
+    dlog("$3Dmol OK, v" + ($3Dmol.version || "?"), "ok");
+
+    var el = document.getElementById("viewer3d");
+    if (!el) { dlog("ERROR: #viewer3d not found", "err"); return; }
+
+    var viewer;
+    try {
+        viewer = $3Dmol.createViewer(el, { backgroundColor: "white" });
+        dlog("createViewer OK", "ok");
+    } catch(e) {
+        dlog("Viewer create failed: " + e.message, "err");
+        return;
+    }
+
+    // State
+    var selected = new Map();
+    var caAtoms = [];
+
+    fetch("/api/pdb")
+        .then(function(res) {
+            if (!res.ok) throw new Error("HTTP " + res.status);
+            return res.text();
+        })
+        .then(function(pdbData) {
+            var lines = pdbData.split("\n");
+            var atoms = 0;
+            for (var i = 0; i < lines.length; i++) {
+                if (lines[i].substring(0, 4) === "ATOM") atoms++;
+            }
+            dlog("PDB: " + atoms + " ATOMs");
+
+            viewer.addModel(pdbData, "pdb");
+            var loaded_atoms = viewer.getModel().selectedAtoms({});
+            for (var i in loaded_atoms) {
+                var loaded_atom = loaded_atoms[i];
+                loaded_atom.clickable = true;
+                loaded_atom.clicked=false;
+                loaded_atom.callback = function (atom, viewer)
+                    {
+                        var key = atom.chain + "-" + atom.resi;
+                        if(!atom.clicked)
+                        {
+                            window._select(atom.chain, atom.resi, atom.resn, key);
+                            atom.clicked=true;
+                        }
+                        else
+                        {
+                            window._deselect(atom.chain, atom.resi);
+                            atom.clicked=false;
+                        }
+                        dlog("Clicked on atom "+atom.resi,"warn");
+                    };
+            }
+            window._recolorCartoon();
+            viewer.zoomTo();
+            dlog("Render OK", "ok");
+
+            document.getElementById("atom-count").textContent = atoms + " atoms";
+
+            // Parse CA atoms only
+            var seenResidues = {};
+            for (var i = 0; i < lines.length; i++) {
+                var l = lines[i];
+                if (l.substring(0, 4) === "ATOM") {
+                    var atomName = l.substring(12, 16).trim();
+                    var resName = l.substring(17, 20).trim();
+                    var chain = l.substring(21, 22);
+                    var resSeq = parseInt(l.substring(22, 26));
+                    var key = chain + "-" + resSeq;
+
+                    if (atomName === "CA" && !seenResidues[key]) {
+                        seenResidues[key] = true;
+                        caAtoms.push({
+                            x: parseFloat(l.substring(30, 38)),
+                            y: parseFloat(l.substring(38, 46)),
+                            z: parseFloat(l.substring(46, 54)),
+                            resn: resName, chain: chain, resi: resSeq
+                        });
+                    }
+                }
+            }
+            dlog("Parsed " + caAtoms.length + " CA atoms", "info");
+
+            var canvas = viewer.getCanvas();
+            if (!canvas) { dlog("No canvas", "err"); return; }
+            dlog("Canvas: " + canvas.width + "x" + canvas.height, "info");
+
+            // Check available methods
+            var methods = ["setStyle", "addStyle", "removeStyle", "clearStyle", "modelToScreen", "getXRatio", "getYRatio"];
+            var avail = methods.filter(function(m) { return typeof viewer[m] === "function"; });
+            dlog("Available: " + avail.join(", "), "ok");
+
+            // Check for getXRatio / getYRatio availability
+            var hasXRatio = typeof viewer.getXRatio === "function";
+            var hasYRatio = typeof viewer.getYRatio === "function";
+            dlog("getXRatio: " + hasXRatio + ", getYRatio: " + hasYRatio, hasXRatio ? "ok" : "warn");
+
+            // Check internal GLViewer access
+            var glviewer = canvas._3dmol_viewer || viewer._glviewer || viewer.viewer;
+            dlog("GLViewer access: " + (!!glviewer), glviewer ? "ok" : "warn");
+            if (glviewer) {
+                dlog("targetedObjects: " + (typeof glviewer.targetedObjects === "function"), typeof glviewer.targetedObjects === "function" ? "ok" : "warn");
+            }
+
+            var mouseDownPos = { x: 0, y: 0 };
+            var isMouseDragging = false;
+
+            canvas.addEventListener("mousedown", function(ev) {
+                var rect = canvas.getBoundingClientRect();
+                mouseDownPos.x = ev.clientX - rect.left;
+                mouseDownPos.y = ev.clientY - rect.top;
+                isMouseDragging = false;
+            });
+
+            canvas.addEventListener("mouseup", function(ev) {
+                if (isMouseDragging) return;
+
+                var rect = canvas.getBoundingClientRect();
+                var cx = ev.clientX - rect.left;
+                var cy = ev.clientY - rect.top;
+
+                var dragDist = Math.hypot(cx - mouseDownPos.x, cy - mouseDownPos.y);
+                if (dragDist > 5) return; // Guaranteed to be a click - Not a drag
+
+                dlog("Click canvas=(" + cx.toFixed(0)+","+cy.toFixed(0) + ")", "info");
+
+                // Strategy: try targetedObjects first, fallback to modelToScreen
+                var clickPageX = ev.pageX;
+                var clickPageY = ev.pageY;
+
+                // Convert to normalized coords like mouseXY does
+                var offsetLeft = rect.left + window.pageXOffset;
+                var offsetTop = rect.top + window.pageYOffset;
+                // getXRatio/getYRatio not on public API in 2.0.1; assume 1 (single viewer)
+                var ratioX = hasXRatio ? viewer.getXRatio() : 1;
+                var ratioY = hasYRatio ? viewer.getYRatio() : 1;
+                var viewWidth = canvas.width / ratioX;
+                var viewHeight = canvas.height / ratioY;
+
+                var mouseX = ((clickPageX - offsetLeft) / viewWidth) * 2 - 1;
+                var mouseY = -((clickPageY - offsetTop) / viewHeight) * 2 + 1;
+
+                dlog("Norm=(" + mouseX.toFixed(3)+","+mouseY.toFixed(3) + ") page=("+clickPageX+","+clickPageY+")", "info");
+
+                // Try targetedObjects
+                if (glviewer && typeof glviewer.targetedObjects === "function") {
+                    try {
+                        var intersects = glviewer.targetedObjects(mouseX, mouseY, {});
+                        if (intersects && intersects.length > 0) {
+                            var hit = intersects[0];
+                            var atom = hit.clickable || hit.object;
+                        }
+                        dlog("targetedObjects: no hit", "warn");
+                    } catch(te) {
+                        dlog("targetedObjects err: " + te.message, "err");
+                    }
+                }
+
+                // Fallback: modelToScreen
+                try {
+                    var projected = viewer.modelToScreen(caAtoms);
+                    if (!Array.isArray(projected)) return;
+
+                    var bestAtom = null;
+                    var bestDist = Infinity;
+
+                    // Log first 3 projected coords for debugging
+                    var debugProjs = [];
+                    for (var i = 0; i < caAtoms.length; i++) {
+                        var dist = Math.hypot(clickPageX - projected[i].x, clickPageY - projected[i].y);
+                        if (dist < bestDist) { bestDist = dist; bestAtom = caAtoms[i]; }
+                        if (debugProjs.length < 3) {
+                            debugProjs.push(caAtoms[i].resn+caAtoms[i].resi+":"+caAtoms[i].chain+"=("+projected[i].x.toFixed(0)+","+projected[i].y.toFixed(0)+")");
+                        }
+                    }
+                    dlog("Projs: " + debugProjs.join(", "), "info");
+
+                    dlog("Fallback: " + bestDist.toFixed(1) + "px -> " + bestAtom.resn + " " + bestAtom.resi + ":" + bestAtom.chain, bestDist < 40 ? "ok" : "warn");
+
+                    if (bestDist < 40) {
+                        var key = bestAtom.chain + "-" + bestAtom.resi;
+                        if (ev.shiftKey || selected.has(key)) {
+                            window._deselect(bestAtom.chain, bestAtom.resi);
+                        } else {
+                            window._select(bestAtom.chain, bestAtom.resi, bestAtom.resn, key);
+                        }
+                    }
+                } catch(pe) {
+                    dlog("Fallback err: " + pe.message, "err");
+                }
+            });
+
+            canvas.addEventListener("mousemove", function(ev) {
+                var rect = canvas.getBoundingClientRect();
+                var mx = ev.clientX - rect.left;
+                var my = ev.clientY - rect.top;
+                if (Math.hypot(mx - mouseDownPos.x, my - mouseDownPos.y) > 5) {
+                    isMouseDragging = true;
+                }
+            });
+
+            dlog("Click handler attached", "ok");
+        })
+        .catch(function(e) { dlog("Error: " + e, "err"); });
+
+    // Track selected residue keys
+    var selectedKeys = new Set();
+
+    window._recolorCartoon = function() {
+        var model = viewer.getModel();
+        if (!model) { dlog("No model!", "err"); return; }
+
+        model.setColorByFunction({}, function (atom) {
+            if (selectedKeys.has(atom.chain + "-" + atom.resi)) return "magenta";
+            else return "grey";
+        });
+        viewer.setStyle({hetflag:false},{cartoon:{}});
+        viewer.render();
+        dlog("Recolored (" + selectedKeys.size + " selected)", "ok");
+    };
+
+    // Define the '_select' (residue selection) function on-click
+    window._select = function(chain, resseq, resname, key) {
+        selected.set(key, { chain: chain, resseq: resseq, resname: resname });
+        selectedKeys.add(key);
+        window._recolorCartoon();
+        dlog("Selected " + resname + " " + resseq + ":" + chain, "ok");
+        window._updateList();
+    };
+
+    window._deselect = function(chain, resseq) {
+        var key = chain + "-" + resseq;
+        selected.delete(key);
+        selectedKeys.delete(key);
+        window._recolorCartoon();
+        dlog("Deselected " + chain + " " + resseq, "info");
+        window._updateList();
+    };
+
+    window.clearAll = function() {
+        selected.clear();
+        selectedKeys.clear();
+        window._recolorCartoon();
+        window._updateList();
+    };
+
+    window._updateList = function() {
+        var listEl = document.getElementById("selection-list");
+        var countEl = document.getElementById("selection-count");
+        if (selected.size === 0) {
+            listEl.innerHTML = '<div class="empty-state">No residues selected yet.</div>';
+            countEl.textContent = "";
+            return;
+        }
+        listEl.innerHTML = "";
+        var arr = Array.from(selected.values()).sort(function(a, b) {
+            if (a.chain !== b.chain) return a.chain.localeCompare(b.chain);
+            return a.resseq - b.resseq;
+        });
+        arr.forEach(function(res) {
+            var item = document.createElement("div");
+            item.className = "selection-item";
+            var span = document.createElement("span");
+            span.className = "res-info";
+            span.textContent = res.resname + " " + res.resseq + ":" + res.chain;
+            var btn = document.createElement("button");
+            btn.className = "remove-btn";
+            btn.textContent = "\u2715";
+            btn.onclick = function() { window._deselect(res.chain, res.resseq); };
+            item.appendChild(span);
+            item.appendChild(btn);
+            listEl.appendChild(item);
+        });
+        countEl.textContent = selected.size + " residue" + (selected.size !== 1 ? "s" : "") + " selected";
+    };
+
+    window.finalizeSelection = function() {
+        if (selected.size === 0 && !confirm("No residues selected. Continue?")) return;
+        var arr = Array.from(selected.values()).sort(function(a, b) {
+            if (a.chain !== b.chain) return a.chain.localeCompare(b.chain);
+            return a.resseq - b.resseq;
+        });
+        document.getElementById("selected-residues-input").value = JSON.stringify(arr);
+        document.getElementById("finalize-form").submit();
+    };
+
+    window.addEventListener("resize", function() { viewer.resize(); });
+})();
+
+</script>
+
+</body>
+</html>

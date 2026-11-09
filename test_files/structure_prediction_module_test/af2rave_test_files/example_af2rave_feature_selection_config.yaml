@@ -1,0 +1,53 @@
+paths:
+  structures_dir: null  # default in code: null
+  structure_dirs: []  # default in code: []
+  structure_dirs_file: null  # default in code: null
+  reference_structure: null  # default in code: null
+  reference_selection: "best_plddt"  # default in code: best_plddt
+  output_dir: "/path/to/af2rave_feature_selection_output"  # default in code: af2rave_output
+
+filtering:
+  # Set null to leave RMSD or peptide-bond filtering off.
+  rmsd_selection: "name CA"  # default in code: name CA
+  rmsd_cutoff: 6.0  # default in code: null
+  steric_clash_cutoff: 1.0  # default in code: 1.0; set null to disable
+  nonbonded_cutoff: null  # legacy alias; use steric_clash_cutoff instead
+  peptide_bond_mean: null  # default in code: null
+  peptide_bond_std: null  # default in code: null
+  rmsd_filter_kwargs: {}  # default in code: {}
+  steric_clash_filter_kwargs: {}  # default in code: {}
+  peptide_bond_filter_kwargs: {}  # default in code: {}
+
+analysis:
+  write_full_feature_stats: false  # default in code: false
+
+features:
+  n_features: 200  # default in code: 200
+  selection: "name CA"  # default in code: name CA
+  rank_feature_kwargs: {}  # default in code: {}
+
+clustering:
+  method: "regular_space"  # default in code: regular_space
+  dist_cutoff: 5.0  # default in code: 5.0
+  max_centers: 100  # default in code: 100
+  target_centers: null  # default in code: null
+  target_search_max_iterations: 30  # default in code: 30
+  target_search_min_dist_tolerance: 0.0001  # default in code: 0.0001
+  target_search_max_evaluations: 20000  # default in code: 20000
+  batch_size: 100  # default in code: 100
+  randomseed: 0  # default in code: 0
+  n_clusters: 20  # default in code: 20
+  n_init: 10  # default in code: 10
+  kmeans_kwargs: {}  # default in code: {}
+  pca_components: 2  # default in code: 2
+  pca_kwargs: {}  # default in code: {}
+
+simulation_box:
+  enabled: false  # default in code: false
+  pH: 7.0  # default in code: 7.0
+  water_padding: 10.0  # default in code: 10.0
+  cation: "Na+"  # default in code: Na+
+  anion: "Cl-"  # default in code: Cl-
+  molar: 0.0  # default in code: 0.0
+  water_model: "tip3p"  # default in code: tip3p
+  create_box_kwargs: {}  # default in code: {}

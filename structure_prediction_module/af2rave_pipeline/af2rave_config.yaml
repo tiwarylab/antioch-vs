@@ -1,0 +1,76 @@
+paths:
+  structures_dir: null
+  structure_dirs: STRUCT_URE_DIRS
+  structure_dirs_file: null
+  reference_structure: null
+  reference_selection: "best_plddt"
+  plddt_bfactor_scale: "0_100"  # options: 0_100, 0_1; default in code: 0_100
+  plddt_residue_ranges: []  # default in code: []
+  output_dir: "AF2RAVE_OUTPUT"  # default in code: af2rave_output
+
+filtering:
+  rmsd_selection: "name CA"
+  rmsd_cutoff: 6.0
+  steric_clash_cutoff: 1.0  # default in code: 1.0
+  nonbonded_cutoff: null  # legacy alias; use steric_clash_cutoff instead
+  peptide_bond_mean: 1.4
+  peptide_bond_std: 0.2
+  rmsd_filter_kwargs: {}  # default in code: {}
+  steric_clash_filter_kwargs: {}  # default in code: {}
+  peptide_bond_filter_kwargs: {}  # default in code: {}
+
+analysis:
+  write_full_feature_stats: false
+
+features:
+  n_features: 200
+  write_feature_cache: true
+  reuse_feature_cache: false
+  feature_cache_npz: "ranked_feature_values.npz"
+  rank_feature_kwargs: {}
+  selection: "((residue 41 to 69 or residue 129 to 187) and name CA) or (residue 157 and (name CB or name CG)) or (residue 158 and (name CZ or name CG)) or (residue 159 and name O) or (residue 61 and name CD) or (residue 45 and (name CB or name NZ))"
+
+clustering:
+  # Options: regular_space or kmeans.
+  method: "METHOD"  # default in code: regular_space
+
+  # regular_space settings.
+  dist_cutoff: 5.0  # default in code: 5.0
+  # AF2RAVE capacity. Keep this higher than target_centers so the target search
+  # can determine whether a trial has too many centers.
+  max_centers: 100  # default in code: 100
+  # Optional requested number of regular-space centers. When set, ANTIOCH-VS
+  # adjusts dist_cutoff until it finds exactly this number; null disables the
+  # search and calls AF2RAVE once at dist_cutoff.
+  target_centers: null  # default in code: null
+  target_search_max_iterations: 30  # default in code: 30
+  # Search resolution in Angstrom; 0.05 is adequate for selecting diverse centers.
+  target_search_min_dist_tolerance: 0.05  # default in code: 0.05
+  # Relative scan resolution for larger feature-space distances.
+  target_search_relative_tolerance: 0.01  # default in code: 0.01
+  target_search_max_evaluations: 1000  # default in code: 1000
+  batch_size: 100  # default in code: 100
+  randomseed: 0  # default in code: 0
+
+  # kmeans settings. Used only when method: "kmeans".
+  n_clusters: 20  # default in code: 20
+  n_init: 10  # default in code: 10
+  kmeans_kwargs: {}  # default in code: {}
+
+  pca_components: 2  # default in code: 2
+  # Optional keyword arguments passed to sklearn PCA through AF2RAVE pca().
+  pca_kwargs: {}  # default in code: {}
+
+  # Optional cluster-center PDB export for downstream workflows.
+  copy_cluster_centers: true  # default in code: false
+  cluster_centers_dir: "cluster_center_structures"  # default in code: cluster_center_structures
+  clean_cluster_centers_dir: false  # default in code: false
+  # Align exported center PDBs using common CA atoms. This does not affect
+  # feature calculation or clustering.
+  align_cluster_centers: true  # default in code: true
+  # pipeline_reference uses paths.reference_structure or the selected fallback.
+  # first_center retains the previous representative-based alignment behavior.
+  center_alignment_reference: "pipeline_reference"  # default in code: pipeline_reference
+
+simulation_box:
+  enabled: false

@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ANTIOCH-VS - Docking Workflow Prep</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --success: #16a34a;
+            --error: #dc2626;
+            --radius: 12px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── Header ─────────────────────────────────────────────── */
+        header {
+            background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        header h1 { font-size: 2rem; font-weight: 700; letter-spacing: -0.5px; }
+        header p { opacity: 0.85; margin-top: 0.5rem; font-size: 1.05rem; }
+
+        /* ── Flash Messages ─────────────────────────────────────── */
+        .flash-container {
+            max-width: 900px;
+            margin: 1rem auto 0;
+            padding: 0 1rem;
+            width: 100%;
+        }
+        .flash {
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .flash-error { background: #fef2f2; color: var(--error); border: 1px solid #fecaca; }
+        .flash-success { background: #f0fdf4; color: var(--success); border: 1px solid #bbf7d0; }
+
+        /* ── Main Container ─────────────────────────────────────── */
+        main {
+            flex: 1;
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            width: 100%;
+        }
+
+        /* ── Cards ──────────────────────────────────────────────── */
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
+            border: 1px solid var(--border);
+        }
+        .card h2 {
+            font-size: 1.25rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+        .card h2 .icon { font-size: 1.4rem; }
+        .step-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px; height: 28px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        /* ── Form Elements ──────────────────────────────────────── */
+        label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 0.4rem;
+            color: var(--text);
+            font-size: 0.95rem;
+        }
+        .hint {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 0.6rem;
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: 0.7rem 1rem;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+            outline: none;
+        }
+        input[type="text"]:focus {
+            border-color: var(--primary);
+        }
+
+        /* ── Radio Toggle ───────────────────────────────────────── */
+        .toggle-group {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .toggle-group label {
+            flex: 1;
+            text-align: center;
+            padding: 0.7rem;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+        .toggle-group input[type="radio"] { display: none; }
+        .toggle-group input[type="radio"]:checked + label,
+        .toggle-group label.active {
+            border-color: var(--primary);
+            background: #eff6ff;
+            color: var(--primary);
+        }
+
+        /* ── File Drop Zone ─────────────────────────────────────── */
+        .drop-zone {
+            border: 2px dashed var(--border);
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+        .drop-zone:hover, .drop-zone.dragover {
+            border-color: var(--primary);
+            background: #f0f7ff;
+        }
+        .drop-zone input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+        .drop-zone .dz-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+        .drop-zone .dz-text { color: var(--text-muted); font-size: 0.95rem; }
+        .drop-zone .dz-filename {
+            margin-top: 0.5rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        /* ── Submit Button ──────────────────────────────────────── */
+        .submit-btn {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.1s, box-shadow 0.2s;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+        .submit-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+        }
+        .submit-btn:active { transform: translateY(0); }
+
+        /* ── Footer ─────────────────────────────────────────────── */
+        footer {
+            text-align: center;
+            padding: 1.5rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        /* ── Responsive ─────────────────────────────────────────── */
+        @media (max-width: 640px) {
+            header h1 { font-size: 1.5rem; }
+            .card { padding: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>⚗️ ANTIOCH-VS</h1>
+    <p>Docking Workflow Preparation Tool</p>
+</header>
+
+<!-- Flash Messages -->
+<div class="flash-container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash flash-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+</div>
+
+<main>
+    <form method="POST" action="/prepare" enctype="multipart/form-data">
+
+        <!-- ── Step 1: Protein ─────────────────────────────────── -->
+        <div class="card">
+            <h2><span class="step-badge">1</span> <span class="icon">🧬</span> Protein Structure</h2>
+
+            <div class="toggle-group">
+                <input type="radio" name="protein_source" id="src_pdbid" value="pdb_id" checked>
+                <label for="src_pdbid" id="label_pdbid">🔍 PDB ID</label>
+
+                <input type="radio" name="protein_source" id="src_upload" value="upload">
+                <label for="src_upload" id="label_upload">📁 Upload File</label>
+            </div>
+
+            <!-- PDB ID Input -->
+            <div id="pdbid_panel">
+                <label for="pdb_id">PDB ID</label>
+                <p class="hint">Enter a 4-character RCSB PDB ID (e.g., <code>7DAT</code>, <code>4KDT</code>)</p>
+                <input type="text" id="pdb_id" name="pdb_id" placeholder="e.g. 7DAT" maxlength="4" style="text-transform:uppercase;">
+            </div>
+
+            <!-- Upload Panel -->
+            <div id="upload_panel" style="display:none;">
+                <div class="drop-zone" id="protein_drop">
+                    <input type="file" name="protein_file" id="protein_file" accept=".pdb,.ent">
+                    <div class="dz-icon">📄</div>
+                    <div class="dz-text">Drop your .pdb or .ent file here, or click to browse</div>
+                    <div class="dz-filename" id="protein_filename"></div>
+                </div>
+            </div>
+
+            <!-- Chain Selection -->
+            <div style="margin-top: 1.5rem;">
+                <label for="chains">Chains to Keep (optional)</label>
+                <p class="hint">Enter chain IDs separated by spaces (e.g., <code>A D</code>). Leave empty to keep all chains.</p>
+                <input type="text" id="chains" name="chains" placeholder="e.g. A D  (leave empty for all)">
+            </div>
+        </div>
+
+        <!-- ── Step 2: Ligand ─────────────────────────────────── -->
+        <div class="card">
+            <h2><span class="step-badge">2</span> <span class="icon">💊</span> Ligand</h2>
+
+            <label>Upload Ligand File</label>
+            <p class="hint">Supported formats: <code>.smi</code> (SMILES) or <code>.umf</code> (UMF database)</p>
+
+            <div class="drop-zone" id="ligand_drop">
+                <input type="file" name="ligand_file" id="ligand_file" accept=".smi,.umf">
+                <div class="dz-icon">🧪</div>
+                <div class="dz-text">Drop your .smi or .umf file here, or click to browse</div>
+                <div class="dz-filename" id="ligand_filename"></div>
+            </div>
+        </div>
+
+        <!-- ── Submit ─────────────────────────────────────────── -->
+        <button type="submit" class="submit-btn">🚀 Prepare &amp; Download</button>
+
+    </form>
+</main>
+
+<footer>
+    ANTIOCH-VS &mdash; Built for streamlined docking workflows
+</footer>
+
+<script>
+    // ── Toggle PDB ID / Upload panels ────────────────────────────
+    const srcPdbId = document.getElementById("src_pdbid");
+    const srcUpload = document.getElementById("src_upload");
+    const pdbidPanel = document.getElementById("pdbid_panel");
+    const uploadPanel = document.getElementById("upload_panel");
+
+    function updatePanels() {
+        if (srcPdbId.checked) {
+            pdbidPanel.style.display = "block";
+            uploadPanel.style.display = "none";
+        } else {
+            pdbidPanel.style.display = "none";
+            uploadPanel.style.display = "block";
+        }
+    }
+    srcPdbId.addEventListener("change", updatePanels);
+    srcUpload.addEventListener("change", updatePanels);
+
+    // ── File name display ────────────────────────────────────────
+    document.getElementById("protein_file").addEventListener("change", function() {
+        const name = this.files[0] ? this.files[0].name : "";
+        document.getElementById("protein_filename").textContent = name;
+    });
+    document.getElementById("ligand_file").addEventListener("change", function() {
+        const name = this.files[0] ? this.files[0].name : "";
+        document.getElementById("ligand_filename").textContent = name;
+    });
+
+    // ── Drag-and-drop visual feedback ────────────────────────────
+    document.querySelectorAll(".drop-zone").forEach(zone => {
+        ["dragenter", "dragover"].forEach(evt => {
+            zone.addEventListener(evt, e => { e.preventDefault(); zone.classList.add("dragover"); });
+        });
+        ["dragleave", "drop"].forEach(evt => {
+            zone.addEventListener(evt, e => { e.preventDefault(); zone.classList.remove("dragover"); });
+        });
+    });
+</script>
+
+</body>
+</html>

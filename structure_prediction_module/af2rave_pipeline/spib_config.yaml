@@ -1,0 +1,38 @@
+# spib_config.yaml — Configuration for run_spib.py
+# ==================================================
+# All fields are optional. Precedence: CLI args > YAML > built-in defaults.
+#
+# Usage:
+#   python3 run_spib.py --config spib_config.yaml
+#   python3 run_spib.py --config spib_config.yaml --sweep 50 5000 12
+
+# --- Mode (mutually exclusive — uncomment one) ---
+# Single time lag:
+time_lag: null
+
+# Sweep over log-spaced time lags: [MIN, MAX, POINTS]
+# sweep: [50, 5000, 12]
+
+# --- Label Initialization ---
+# "split" (default) or "tica:N" (e.g. "tica:4")
+init: split
+
+# --- SPIB Hyperparameters ---
+spib:
+  beta: 0.05                  # KL divergence weight in loss (L = CE + beta * KL)
+  lr: 1.0e-4                  # Adam learning rate
+  batch_size: 512             # Training batch size
+  refinements: 8              # Max EM-style label refinement rounds
+  patience: 2                 # Epochs of no change before stopping refinements
+  threshold: 0.01             # Convergence threshold for state population change
+  rc_dim: 2                   # Number of reaction coordinates (latent dim)
+  seed: 42                    # Random seed for reproducibility
+  neuron_num1: 32             # First hidden layer neurons (encoder)
+  neuron_num2: 128            # Second hidden layer neurons (encoder)
+  lr_scheduler_step: 5        # LR scheduler step size
+  lr_scheduler_gamma: 0.8     # LR scheduler decay factor
+
+# --- I/O ---
+output: spib_results          # Output directory for SPIB .pkl files
+list: false                   # List available COLVAR files and exit
+folders: null                 # Process only these folder names (default: all)

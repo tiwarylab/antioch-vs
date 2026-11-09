@@ -1,0 +1,52 @@
+# spib_stage_config.yaml — orchestrate the SPIB stage for AF2RAVE unbiased-MD trajectories.
+# Driven by run_spib_stage.py, which wraps the COLVAR -> SPIB -> analysis chain (the logic in the
+# image's `runspib`) into a YAML-driven, logged, manifested runner. It adds the membrane case
+# (strip lipids as well as water) and the truncation case (restore original residue numbering so
+# the feature names map), which the stock extract_mdout.sh does not handle.
+
+paths:
+  # Directory holding the per-center MD folders (output of run_unbiased_md.py); each must contain
+  # system.prmtop and the production trajectory (paths.trajectory_name).
+  md_output_dir: "/path/to/unbiased_md_output"  # default in code: null; required
+  trajectory_name: "06p5_Prod.nc"  # default in code: 06p5_Prod.nc  (the AMBER production NetCDF per folder)
+  # Full CV-ranked feature list from af2rave_pipeline.py (selected_features.csv). The runner takes the
+  # top features.n_features of it (after any drop_ranges), so this may be the full ranking.
+  features_csv: "/path/to/clustered_output/selected_features.csv"  # default in code: null; required
+  output_dir: null  # default in code: null -> use md_output_dir (COLVAR files, spib_results/, graph_outputs/)
+  # Optional AF2 static-structure root (run folders of PDBs) for the FES overlay / structure pick.
+  af2_structures_dir: null  # default in code: null -> overlay skipped
+
+membrane:
+  # true -> also strip lipids (POPC: PC/PA/OL) in addition to water+ions when staging the trajectory.
+  enabled: false  # default in code: false
+
+features:
+  n_features: 200  # default in code: 200  (top-N of the ranked CSV fed to COLVAR/SPIB)
+  # If the MD used loop truncation, drop any feature touching these residue ranges (ORIGINAL numbering)
+  # before taking the top-N. Dropping == re-ranking on the truncated system (CV is per-pair independent).
+  drop_ranges: []  # default in code: []  e.g. ["200-231"]
+
+relabel:
+  # Needed ONLY if the MD used truncation: tleap renumbers the topology 1..N (collapsing the cut), so the
+  # per-folder only_protein.pdb must be relabeled back to the feature CSV's original numbering, and the
+  # AMBER CYX renamed to CYS, for the feature names to map.
+  enabled: false  # default in code: false
+  split: null     # first sequential resid of the post-cut segment; null -> auto-derive from a single drop_range
+  offset: null    # added to resid >= split; null -> auto-derive (range_size - 2 caps)
+  cyx_to_cys: true  # default in code: true
+
+spib:
+  # SPIB sweep config consumed by run_spib.py (sweep/time_lag + hyperparameters).
+  config: "spib_config.yaml"  # default in code: spib_config.yaml (next to run_spib.py)
+
+analysis:
+  enabled: true  # default in code: true  (pick dt, project COLVARs, FES, representative-frame PDBs)
+  num_final_structures: 5  # default in code: 5
+
+environment:
+  dockflow_root: "/path/to/dockflow"  # default in code: null -> this checkout
+  cpptraj: "cpptraj"  # default in code: cpptraj  (staging; env with cpptraj)
+  # Command prefix for the COLVAR step (needs MDAnalysis + PLUMED on PATH), e.g. "micromamba run -n metad_env python".
+  colvar_python: "python3"  # default in code: python3
+  # Command prefix for SPIB + analysis (needs af2rave, and for analysis also mdtraj + scikit-learn + matplotlib).
+  spib_python: "python3"  # default in code: python3

@@ -1,0 +1,5 @@
+parm PRMTOP
+trajin NETCDF_TRAJ
+strip !(:1-76) parmout PRMTOP_OUT
+trajout XTC_OUT xtc
+run

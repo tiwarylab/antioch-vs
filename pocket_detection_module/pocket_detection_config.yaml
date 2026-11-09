@@ -1,0 +1,45 @@
+# Choose one method: "p2rank" or "grasp".
+method: "p2rank"
+
+paths:
+  # One receptor PDB/mmCIF/BinaryCIF file, or a directory of structures such
+  # as AF2RAVE's cluster_center_structures directory.
+  input_structures: "/path/to/cluster_center_structures"
+  output_dir: "/path/to/pocket_detection_run"
+
+execution:
+  overwrite: false
+
+# Used only when method: "p2rank".
+p2rank:
+  # P2Rank's prank launcher, usually <p2rank>/prank after unpacking a release.
+  executable: "/path/to/p2rank/prank"
+  threads: 4
+  # Use "alphafold" for AF2/AF2RAVE, NMR, or cryo-EM structures. Set null for
+  # conventional X-ray crystal structures.
+  profile: "alphafold"
+  visualizations: false
+  extra_args: []
+
+# Used only when method: "grasp".
+grasp:
+  # Existing clone of https://github.com/tiwarylab/GrASP
+  root: "/path/to/GrASP"
+  python: "/path/to/grasp_env/bin/python"
+  color_python: "/path/to/openbabel_env/bin/python"
+  model_path: "train_full/trained_model_s_train_full_ag_multi_1680643832.8660116/cv_0/epoch_49"
+  n_tasks: 4
+
+# Used only when method: "grasp".
+pocket_clustering:
+  score_threshold: 0.5
+  cluster_distance: 6.0
+  min_atoms: 3
+
+# P2Rank uses this fixed size with each predicted center. GrASP derives each
+# box from pocket atoms plus padding/min_size when size is null; set size to
+# three values to force the same fixed box for every GrASP pocket.
+docking_box:
+  size: null
+  padding: 5.0
+  min_size: 15.0

@@ -1,0 +1,35 @@
+paths:
+  receptor_dms: "test_files/docking_module_test/dock6_dude_examples/cdk2/prepared/1h00_receptor_prepared_surf_d5.dms"  # default in code: null; required
+  receptor_mol2: "test_files/docking_module_test/dock6_dude_examples/cdk2/prepared/1h00_receptor_prepared_wH_wcH.mol2"  # default in code: null; required
+  ref_ligand_mol2: "test_files/docking_module_test/dock6_dude_examples/cdk2/prepared/1h00_FAP_reference_ligand.mol2"  # default in code: null; required
+  ligand_file: "test_files/docking_module_test/dock6_dude_examples/cdk2/prepared/1h00_FAP_ligand.mol2"  # default in code: null; required
+  output_dir: "test_files/docking_module_test/dock6_dude_examples/cdk2/dock6_run"  # default in code: null; required
+
+parameters:
+  sphere_radius: 10.0  # default in code: 10.0
+  box_margin: 8.0  # default in code: 8.0
+  max_orientations: 5000  # default in code: 1000
+
+  extra_flex_args:  # default in code: {}
+    num_preclustered_conformers: 50
+    num_final_scored_poses: 50
+    write_orientations: yes
+    simplex_final_min: yes
+    simplex_max_cycles: 100
+    simplex_anchor_max_iterations: 1000
+    simplex_grow_max_iterations: 1000
+
+environment:
+  # Native mode: absolute path to the host DOCK6 installation folder.
+  # Singularity mode: path to the DOCK6 installation inside the image.
+  dock6_dir: "/path/to/dock6"  # default in code: /usr/local/dock6
+
+  # Uncomment for Singularity/Apptainer execution.
+  # sif_image: "/absolute/path/to/dock6.sif"
+  # singularity_binds:
+  #   - "/absolute/path/to/project_or_storage"
+
+  # Optional MPI support for the final flexible-docking step only.
+  # Request Slurm tasks for MPI, for example --ntasks=32 --cpus-per-task=1.
+  # dock6_launcher: "srun --mpi=pmix -n ${SLURM_NTASKS}"
+  # dock6_executable: "/absolute/path/to/dock6/bin/dock6.mpi"

@@ -1,0 +1,48 @@
+ ###load protein force field
+ source leaprc.protein.ff14SB
+ 
+ ###load GAFF force field (for our ligand)
+ source leaprc.gaff2
+ 
+ ###load TIP3P (water) force field
+ source leaprc.water.tip3p
+ 
+ ###load ions frcmod for the tip3p model
+ loadamberparams frcmod.ionsjc_tip3p
+  
+ ###needed so we can use igb=8 model
+ set default PBradii mbondi3
+ 
+ ###load protein pdb file
+ rec=loadpdb receptor1.pdb
+  
+ #THIS IS WHERE YOU WOULD DEFINE DISULFIDE BONDS
+ #NUMBERING SHOULD MATCH INPUT PDB FILE
+ #bond rec.649.SG rec.762.SG
+ #bond rec.454.SG rec.472.SG
+
+ ###create gase-phase complex
+ gascomplex= combine {rec}
+  
+ ###write gas-phase pdb
+ savepdb gascomplex protein_vac.pdb
+ 
+ ###write gase-phase toplogy and coord files for MMGBSA calc
+ saveamberparm gascomplex protein_vac.parm7 protein_vac.rst7
+  
+ ###create solvated complex (albeit redundant)
+ solvcomplex= combine {rec}
+  
+ ###solvate the system
+ solvateoct solvcomplex TIP3PBOX 12.0
+  
+ ###Neutralize system (Optional)
+ # addions solvcomplex Cl- 46
+ # addions solvcomplex Na+ 43
+  
+ #write solvated pdb file
+ savepdb solvcomplex system.pdb
+  
+ ###write solvated toplogy and coordinate file
+ saveamberparm solvcomplex system.prmtop system.inpcrd
+ quit

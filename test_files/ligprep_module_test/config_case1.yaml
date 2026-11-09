@@ -1,0 +1,21 @@
+# Case 1: AutoDock Vina default
+# ── All molecules → PDBQT, one file per molecule, single output folder ──
+
+source:
+  type: "smiles"
+  path: "input_data/example.smi"
+
+smiles_conversion:
+  cpus: 16
+  batch_size: 4096
+
+processing:
+  target_format: "pdbqt"
+  output_dir: "case1_pdbqt_single"
+  num_blocks: 1
+  split_files: true
+  scratch_dir: "./scratch/"
+
+logging:
+  log_file: "ligprep_case1.log"
+  verbose: true

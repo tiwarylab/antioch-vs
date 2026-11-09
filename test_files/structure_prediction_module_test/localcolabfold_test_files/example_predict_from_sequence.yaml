@@ -1,0 +1,38 @@
+paths:
+  # The bundled JAK2 kinase-domain query. Replace with paths.sequence_file to
+  # use your own FASTA instead.
+  sequence: "GSDPTQFEERHLKFLQQLGKGNFGSVEMCRYDPLQDNTGEVVAVKKLQHSTEEHLRDFEREIEILKSLQHDNIVKYKGVCYSAGRRNLKLIMEYLPYGSLRDYLQKHKERIDHIKLLQYTSQICKGMEYLGTKRYIHRDLATRNILVENENRVKIGDFGLTKVLPQDKEYYKVKEPGESPIFWYAPESLTESKFSVASDVWSFGVVLYELFTYIEKSKSPPAEFMRMIGNDKQGQMIVFHLIELLKNNGRLPRPDGCPDEIYMIMTECWNNNVNQRPSFRDLALRVDQIRDNMAG"
+  sequence_file: null
+  # Must be a new directory unless execution.overwrite is true.
+  output_dir: "/path/to/localcolabfold_predict_test"
+
+environment:
+  localcolabfold_cmd: "colabfold_batch"
+
+execution:
+  overwrite: false
+
+localcolabfold:
+  # Generates one deep A3M, then reuses it for all three prediction runs.
+  mode: "predict"
+  num_seeds: 1
+  num_recycles: 1
+  use_dropout: false
+  save_all: false
+  msa_mode: "mmseqs2_uniref_env"
+  model_type: null
+  extra_args:
+    - "--data"
+    # Cache root, which contains the params/ directory.
+    - "/path/to/colabfold_cache"
+
+runs:
+  - name: "rmsa_8_16"
+    settings:
+      max_msa: "8:16"
+  - name: "rmsa_16_32"
+    settings:
+      max_msa: "16:32"
+  - name: "rmsa_32_64"
+    settings:
+      max_msa: "32:64"

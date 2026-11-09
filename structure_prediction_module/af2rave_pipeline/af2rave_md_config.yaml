@@ -1,0 +1,48 @@
+paths:
+  # Directory of selected cluster-center PDBs, or provide structures_file below.
+  structures_dir: "/path/to/cluster_center_structures"  # default in code: null
+  # Optional text file with one PDB path per line. Takes precedence over structures_dir.
+  structures_file: null  # default in code: null
+  # Feature cache produced by af2rave_pipeline.py with features.write_feature_cache: true.
+  feature_cache_npz: "/path/to/ranked_feature_values.npz"  # default in code: null; required
+  output_dir: "/path/to/af2rave_md_output"  # default in code: af2rave_md_output
+
+features:
+  # Top ranked cached pairwise-distance features to map into boxed systems and
+  # report as CVs during MD.
+  n_features: 200  # default in code: 200
+
+simulation_box:
+  enabled: true  # default in code: true
+  pH: 7.4  # default in code: 7.0
+  water_padding: 10.0  # default in code: 10.0
+  cation: "Na+"  # default in code: Na+
+  anion: "Cl-"  # default in code: Cl-
+  molar: 0.15  # default in code: 0.0
+  water_model: "tip3p"  # default in code: tip3p
+  # Optional AF2RAVE SimulationBox.add_disulfide_bond() support.
+  # Pairs are 0-based OpenMM residue indices, not PDB residue numbers.
+  disulfide_bonds: []  # default in code: []
+  # Optional keyword arguments passed to AF2RAVE SimulationBox.create_box().
+  create_box_kwargs: {}  # default in code: {}
+
+md:
+  # Set false for box/index setup only. Set true to run AF2RAVE UnbiasedSimulation.
+  enabled: false  # default in code: false
+  steps: 50000000  # default in code: 50000000
+  temp: 310.0  # default in code: 310.0
+  # Set pressure: null for NVT; otherwise pressure is in bar.
+  pressure: 1.0  # default in code: 1.0
+  dt: 0.002  # default in code: 0.002
+  cutoff: 10.0  # default in code: 10.0
+  cv_file: "COLVAR.dat"  # default in code: <structure_prefix>_colvar.dat
+  cv_freq: 50  # default in code: 50
+  # Set xtc_file or xtc_freq to null to suppress trajectory writing.
+  xtc_file: "traj.xtc"  # default in code: <structure_prefix>.xtc
+  xtc_freq: 1000  # default in code: 1000
+  progress_every: 1000  # default in code: 1000
+  append: false  # default in code: false
+  final_pdb: null  # default in code: <structure_prefix>_out.pdb
+  checkpoint: null  # default in code: <structure_prefix>_out.chk
+  # Optional keyword arguments passed to AF2RAVE UnbiasedSimulation().
+  unbiased_simulation_kwargs: {}  # default in code: {}

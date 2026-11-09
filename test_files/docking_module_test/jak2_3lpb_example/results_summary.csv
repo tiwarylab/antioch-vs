@@ -1,0 +1,5 @@
+engine,chain,ligand,top_score,score_units,output_pose
+dock6,A,NVB,-74.286766,Grid_Score,output_poses/dock6/chainA/3LPB_chainA_receptor_prepared_wH_wcH_flex_scored.mol2
+dock6,B,NVB,-75.215126,Grid_Score,output_poses/dock6/chainB/3LPB_chainB_receptor_prepared_wH_wcH_flex_scored.mol2
+vina,A,NVB,-10.01,kcal/mol,output_poses/vina/chainA/3LPB_chainA_NVB_ligand_out.pdbqt
+vina,B,NVB,-9.882,kcal/mol,output_poses/vina/chainB/3LPB_chainB_NVB_ligand_out.pdbqt

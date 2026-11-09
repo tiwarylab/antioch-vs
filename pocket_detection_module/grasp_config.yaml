@@ -1,0 +1,21 @@
+paths:
+  # One GrASP-colored PDB, or a directory containing colored PDBs.
+  scored_pdbs: "/path/to/grasp_colored_pdbs"
+  output_dir: "/path/to/grasp_pockets"
+
+grasp:
+  # GrASP's color_pdb.py writes atom predictions into the PDB B-factor field.
+  score_field: "bfactor"
+
+pocket_clustering:
+  # Pocket boundaries use GrASP's own postprocessing (vendored from site_metrics.py).
+  # Defaults below are GrASP's published values.
+  score_threshold: 0.3        # atoms with GrASP probability above this seed pockets
+  distance_threshold: 15.0    # average-linkage distance_threshold (Angstrom)
+  score_type: "square"        # site score = sum of squared atom scores (ranking)
+  n_sites: 100                # max ranked sites to keep per receptor
+  min_atoms: 1                # ANTIOCH-VS-only filter; 1 = keep all (matches GrASP)
+
+docking_box:
+  padding: 5.0
+  min_size: 15.0

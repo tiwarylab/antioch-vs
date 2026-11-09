@@ -1,0 +1,58 @@
+#!/bin/bash
+# pack_membrane — build a POPC bilayer around a protein with Packmol-Memgen (packing only).
+#
+# The input PDB must already be protonated and tleap-ready (PROPKA/Reduce/CPPTRAJ prep upstream) AND
+# already oriented in the bilayer frame (setup_MD_from_PDB.sh runs MEMEMBED on the clean PDB before prep),
+# so `--preoriented` is passed to skip Packmol-Memgen's own MEMEMBED call (which cannot score the
+# Amber-renamed residues). `--notprotonate` preserves the upstream protonation. Packmol-Memgen here ONLY
+# packs the bilayer + water + ions — it does
+# NOT parametrize (no --parametrize): the final AMBER topology is built afterwards by
+# membrane_setup.leap, so the CPPTRAJ-detected disulfide bonds are applied and the ff14SB/Lipid21/TIP3P
+# model stays consistent with the rest of the pipeline. (Packmol-Memgen's own --parametrize topology
+# would omit the disulfides and is discarded, so it is not requested.)
+#
+# Usage: pack_membrane <protein.pdb> [ligand]
+#   A non-empty 2nd argument includes GAFF2 ligand parameters (LIG.frcmod:LIG.lib) in the packed system.
+#
+# Outputs (Packmol-Memgen): protein_packed.pdb (packed system) and protein_packed_lipid.pdb
+# (carries the CRYST1 box record read by setup_MD_from_PDB.sh).
+
+# Environment: a bare-metal run points DOCKFLOW_ENV_SETUP at a script that puts packmol-memgen
+# (AmberTools) on PATH; inside the SIF that var is unset and we fall back to the image defaults.
+if [ -n "${DOCKFLOW_ENV_SETUP:-}" ]; then
+	source "$DOCKFLOW_ENV_SETUP"
+elif ! command -v packmol-memgen >/dev/null 2>&1; then
+	source /usr/software/sourceme.sh
+	micromamba activate /usr/software/my_env
+fi
+
+# salt concentration (M) — shared knob with the soluble path (default 0.15)
+SALTCON="${DOCKFLOW_SALT_CONC:-0.15}"
+
+pdbfile="$1"
+if test -z "$pdbfile"
+then
+	echo "pack_membrane requires a PDB file"
+	exit 1
+fi
+
+ext_opts=""
+if test -n "$2"
+then
+	ext_opts="--ligand_param LIG.frcmod:LIG.lib"
+fi
+
+packmol-memgen -p "$pdbfile" \
+  -l POPC \
+  -r 1 \
+  --keepligs \
+  --notprotonate \
+  --salt \
+  --saltcon "$SALTCON" \
+  --dist_wat 20 \
+  --ffprot ff14SB \
+  --fflip lipid21 \
+  --ffwat tip3p \
+  --preoriented \
+  -o protein_packed.pdb $ext_opts \
+  --keep

@@ -1,0 +1,37 @@
+# Environment for the pocket-detection runners - constitution Principle II.
+#
+#   micromamba env create -f pocket_detection_module/pocket_detection_env.yml
+#   micromamba run -n pocket_detection_env python pocket_detection_module/run_pocket_detection.py --config ...
+#
+# The runners themselves import only the standard library plus PyYAML. PyYAML is
+# imported lazily, inside the functions that read or write a config, so the
+# command-line entry points work without it; every documented invocation uses
+# --config, so it is declared as required rather than optional.
+#
+# Exception: postprocess_grasp_pockets.py vendors GrASP's own pocket-clustering
+# functions (site_metrics.py), so it additionally needs numpy, scikit-learn, and
+# scipy. These are declared below for that one runner.
+#
+# This environment deliberately does NOT contain P2Rank or GrASP:
+#
+#   * P2Rank is a JVM program obtained as a release archive and pointed at by
+#     `p2rank.executable`. It needs a JDK/JRE on PATH, not a conda package.
+#   * GrASP is a separate clone with its own environment, reached through
+#     `grasp.python` / `grasp.color_python` in the config. That environment is
+#     Python 3.7.10 and is not managed from here.
+#
+# Both are user-obtained and recorded with tested versions in the constitution's
+# Principle II. See pocket_detection_module/README.md for how to point at them.
+name: pocket_detection_env
+channels:
+  - conda-forge
+dependencies:
+  # Repository floor (lowest Python across the modules).
+  - python>=3.10
+  # Pinned to a major series: PyYAML's loader API has changed across majors.
+  - pyyaml=6.*
+  # Required by the vendored GrASP pocket-clustering functions in
+  # postprocess_grasp_pockets.py (average-linkage clustering + convex-hull center).
+  - numpy
+  - scikit-learn
+  - scipy

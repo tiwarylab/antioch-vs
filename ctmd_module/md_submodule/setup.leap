@@ -1,0 +1,37 @@
+### setup.leap - AMBER topology for a soluble protein (TIP3P octahedral box).
+###
+### Consumed by setup_MD_from_PDB.sh, which fills in the prepared-protein PDB name and the CPPTRAJ-detected
+### disulfide bond lines at the two substitution points below. (The substitution tokens appear ONLY at
+### those points - do not mention them again in comments, or the text replacement would hit the comment.)
+###
+### Force field: ff14SB + GAFF2 + TIP3P, matching the membrane template. The protein is already protonated
+### upstream (PROPKA/Reduce), so tleap only assigns parameters here - it must not re-protonate.
+
+source leaprc.protein.ff14SB
+source leaprc.gaff2
+source leaprc.water.tip3p
+loadamberparams frcmod.ionsjc_tip3p
+set default PBradii mbondi3
+
+### prepared protein
+rec = loadpdb PDBFILE
+
+DISULFIDE_BONDS
+
+### gas-phase complex (for MMGBSA)
+gascomplex = combine {rec}
+savepdb gascomplex protein_vac.pdb
+saveamberparm gascomplex protein_vac.parm7 protein_vac.rst7
+
+### solvated + neutralized complex, then bulk salt to the target molarity.
+### The first two addions (count 0) neutralize; the next two add that many Na+/Cl- pairs of bulk salt
+### (setup_MD_from_PDB.sh computes the pair count from the water count and fills it in below).
+solvcomplex = combine {rec}
+solvateoct solvcomplex TIP3PBOX 12.0
+addions solvcomplex Na+ 0
+addions solvcomplex Cl- 0
+addions solvcomplex Na+ SALT_PAIRS
+addions solvcomplex Cl- SALT_PAIRS
+savepdb solvcomplex system.pdb
+saveamberparm solvcomplex system.prmtop system.inpcrd
+quit

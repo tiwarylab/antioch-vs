@@ -1,0 +1,23 @@
+paths:
+  receptor_pdbqt: "vina_inputs/chainB/3LPB_chainB_receptor_prepared.pdbqt"  # default in code: null; required unless receptor_pdb is set
+  receptor_pdb: ""  # default in code: null; required unless receptor_pdbqt is set
+  ligand_dir: "vina_inputs/chainB/ligands"  # default in code: null; required
+  output_dir: "runs/vina/chainB"  # default in code: null; required
+
+box:
+  center: "77.328 111.100 21.507"  # default in code: auto
+  size: "22 22 22"  # default in code: auto
+
+docking:
+  cpu: 4  # default in code: 8
+  exhaustiveness: 8  # default in code: 32
+  num_modes: 10  # default in code: 9
+  min_rmsd: 3  # default in code: 3
+  energy_range: 3  # default in code: 3
+
+environment:
+  mamba_env: "docking_pipeline"  # default in code: analysis
+  mamba_exe: "micromamba"  # default in code: micromamba
+  vina_exe: "vina"  # default in code: vina
+  vina_cmd: "vina"  # default in code: vina
+  singularity_binds: []  # default in code: []

@@ -1,0 +1,33 @@
+paths:
+  # Public AutoDock Vina 1IEP/c-Abl example.
+  # Providing receptor_pdbqt skips receptor preparation for this smoke test.
+  receptor_pdbqt: "test_files/docking_module_test/vina_test_files/receptor_dir/1iep_receptor.pdbqt"  # default in code: null; required unless receptor_pdb is set
+  receptor_pdb: ""  # default in code: null; required unless receptor_pdbqt is set
+  ligand_dir: "test_files/docking_module_test/vina_test_files/ligand_dir"  # default in code: null; required
+  output_dir: "test_files/docking_module_test/vina_test_files/docking_out_cpu"  # default in code: null; required
+  target_residues_file: ""  # default in code: null
+
+box:
+  center: "15.190 53.903 16.917"  # default in code: auto
+  size: "20 20 20"  # default in code: auto
+  padding: [0, 0, 0]  # default in code: [10.0, 10.0, 10.0]
+  target_chain: ""  # default in code: null
+
+docking:
+  cpu: 4  # default in code: 8
+  exhaustiveness: 32  # default in code: 32
+  num_modes: 10  # default in code: 9
+  min_rmsd: 1  # default in code: 3
+  energy_range: 3  # default in code: 3
+  scoring: "vina"  # default in code: vina; alternatives supported by compatible Vina versions include vinardo and ad4
+
+environment:
+  mamba_env: "docking_pipeline"  # default in code: analysis
+  mamba_exe: "micromamba"  # default in code: micromamba
+
+  # Use "vina" for native execution through the configured Mamba environment.
+  # To run a Singularity image instead, set vina_exe to an absolute .sif path
+  # and set vina_cmd to the command inside the container, such as "run_cpu".
+  vina_exe: "vina"  # default in code: vina
+  vina_cmd: "run_cpu"  # default in code: vina
+  singularity_binds: []  # default in code: []

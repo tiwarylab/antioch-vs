@@ -1,0 +1,21 @@
+# Case 2: PDBQT split across 4 blocks
+# ── All molecules → PDBQT, one file per molecule, 4 output folders ──
+
+source:
+  type: "smiles"
+  path: "input_data/example.smi"
+
+smiles_conversion:
+  cpus: 16
+  batch_size: 4096
+
+processing:
+  target_format: "pdbqt"
+  output_dir: "case2_pdbqt_4blocks"
+  num_blocks: 4
+  split_files: true
+  scratch_dir: "./scratch/"
+
+logging:
+  log_file: "ligprep_case2.log"
+  verbose: true

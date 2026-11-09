@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>API Test</title></head>
+<body>
+<div id="viewer3d" style="width:800px;height:600px;border:1px solid #ccc;"></div>
+<pre id="log" style="font-size:12px;white-space:pre-wrap;"></pre>
+<script src="https://3dmol.csb.pitt.edu/build/3Dmol.js"></script>
+<script>
+var log = document.getElementById("log");
+function L(s) { log.textContent += s + "\n"; }
+
+var viewer = $3Dmol.createViewer(document.getElementById("viewer3d"), { backgroundColor: "white" });
+L("Methods on viewer:");
+var methods = [];
+for (var k in viewer) {
+    if (typeof viewer[k] === "function") methods.push(k);
+}
+methods.sort();
+L(methods.join("\n"));
+
+// Load a simple PDB
+var pdb = [
+"ATOM      1  CA  MET A   1       0.000   0.000   0.000  1.00  0.00           C",
+"ATOM      2  CA  ALA A   2       1.500   0.000   0.000  1.00  0.00           C",
+"ATOM      3  CA  GLY A   3       3.000   0.000   0.000  1.00  0.00           C",
+].join("\n");
+
+viewer.addModel(pdb, "pdb");
+viewer.setStyle({}, { stick: {} });
+viewer.zoomTo();
+viewer.render();
+
+// Test setClickable + click detection
+viewer.setClickable({}, true);
+viewer.updateClickables();
+
+// Check internal state
+var state = viewer.getInternalState ? viewer.getInternalState() : null;
+if (state) {
+    L("\nInternal state keys: " + Object.keys(state).join(", "));
+    if (state.clickable) {
+        L("clickable type: " + typeof state.clickable);
+        L("clickable keys: " + (state.clickable && typeof state.clickable === "object" ? Object.keys(state.clickable).join(", ") : "N/A"));
+    }
+}
+
+// Test modelToScreen
+var sp = viewer.modelToScreen(0, 0, 0);
+L("\nmodelToScreen(0,0,0): " + JSON.stringify(sp));
+sp = viewer.modelToScreen(1.5, 0, 0);
+L("modelToScreen(1.5,0,0): " + JSON.stringify(sp));
+
+// Test screenOffsetToModel
+var mp = viewer.screenOffsetToModel(400, 300, 10);
+L("screenOffsetToModel(400,300,10): " + JSON.stringify(mp));
+
+// Check canvas
+var canvas = viewer.getCanvas();
+if (canvas) {
+    L("\nCanvas size: " + canvas.clientWidth + "x" + canvas.clientHeight);
+    
+    // Try to find a click handler
+    canvas.addEventListener("click", function(e) {
+        L("\n=== CLICK at " + e.offsetX + "," + e.offsetY + " ===");
+        
+        // Check all selection-related methods
+        if (typeof viewer.getSelection === "function") {
+            L("getSelection: " + JSON.stringify(viewer.getSelection()));
+        } else {
+            L("getSelection: NOT AVAILABLE");
+        }
+        
+        // Try getAtomsFromSel with empty sel
+        var atoms = viewer.getAtomsFromSel ? viewer.getAtomsFromSel({}) : null;
+        if (atoms) L("getAtomsFromSel({}): " + atoms.length + " atoms");
+        
+        // Check _pickedAtom or similar internal props
+        for (var k in viewer) {
+            if (k.indexOf("pick") !== -1 || k.indexOf("click") !== -1 || k.indexOf("sel") !== -1) {
+                L("Property " + k + ": " + JSON.stringify(viewer[k]).substring(0, 200));
+            }
+        }
+        
+        // Check internal state after click
+        if (state) {
+            for (var k in state) {
+                if (k.indexOf("pick") !== -1 || k.indexOf("click") !== -1 || k.indexOf("sel") !== -1) {
+                    L("State " + k + ": " + JSON.stringify(state[k]).substring(0, 200));
+                }
+            }
+        }
+    });
+}
+
+L("\nReady. Click on the sticks.");
+</script>
+</body>
+</html>

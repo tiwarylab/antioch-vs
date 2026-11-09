@@ -1,0 +1,53 @@
+# unbiased_md_config.yaml — build AMBER unbiased-MD systems for AF2RAVE cluster centers.
+# Driven by run_unbiased_md.py, which wraps ctmd_module/md_submodule/setup_MD_from_PDB.sh
+# (the shared soluble/membrane system builder). Build-only: it builds system.prmtop/inpcrd
+# per cluster center and emits a launcher; it does not run MD itself.
+
+paths:
+  # Directory of AF2RAVE cluster-center PDBs (output of af2rave_pipeline.py clustering).
+  cluster_centers_dir: "/path/to/clustered_output/cluster_center_structures"  # default in code: null; required unless structures_file
+  # Optional text file with one PDB path per line; takes precedence over cluster_centers_dir.
+  structures_file: null  # default in code: null
+  output_dir: "/path/to/unbiased_md_output"  # default in code: unbiased_md_output
+
+membrane:
+  # true  -> POPC bilayer (packmol-memgen + Lipid21), sets the setup_MD_from_PDB.sh membrane branch.
+  # false -> soluble octahedral TIP3P box.
+  enabled: false  # default in code: false
+
+prep:
+  # Passed to setup_MD_from_PDB.sh as DOCKFLOW_* environment variables (nothing hardcoded to a target).
+  ph: 7.0  # default in code: 7.0  (DOCKFLOW_PH)
+  pka_cutoff: 2.0  # default in code: 2.0  (DOCKFLOW_PKA_CUTOFF)
+  salt_conc: 0.15  # default in code: 0.15  (DOCKFLOW_SALT_CONC, mol/L bulk salt, both paths)
+  disulfide_sg_cutoff: 2.3  # default in code: 2.3  (DOCKFLOW_DISULFIDE_SG_CUTOFF, Å)
+  # Residues protected from PROPKA re-protonation, e.g. ["A:48","A:82"]. Empty = none.
+  protect_res: []  # default in code: []  (DOCKFLOW_PROTECT_RES)
+  # Obligatory disulfides, e.g. ["A:75-A:160","A:153-A:159"]. Empty = NO eligibility gate
+  # (every model eligible; any detected bonds are still applied).
+  required_disulfides: []  # default in code: []  (DOCKFLOW_REQUIRED_DISULFIDES)
+  keep_sugars: false  # default in code: false  (DOCKFLOW_KEEP_SUGARS=1 re-enables CPPTRAJ sugar pass)
+  # Optional loop truncation to shrink the box: list of START-END ranges in the input PDB numbering,
+  # capped with ACE/NME. Empty = no truncation. e.g. ["200-231"]
+  truncate_ranges: []  # default in code: []  (DOCKFLOW_TRUNCATE_RANGES)
+  truncate_chain: null  # default in code: null  (DOCKFLOW_TRUNCATE_CHAIN; restrict truncation to one chain)
+
+launcher:
+  # The runner emits <output_dir>/submit_md.sh to run production for every built system.
+  # It does NOT submit anything unless submit: true.
+  emit: true  # default in code: true
+  submit: false  # default in code: false
+  production_ns: 100  # default in code: 100
+  temperature: 303.0  # default in code: 303.0
+  gpus_per_job: 2  # default in code: 2  (systems paired one-per-GPU per scheduler job)
+  # Command the launcher calls per built system directory to run the MD chain
+  # (01_Min on CPU, 02_Min2..prod on GPU). Receives the system dir and production ns as $1 $2.
+  # Leave null to emit a documented skeleton you wire to your scheduler / MD image.
+  md_run_command: null  # default in code: null
+
+environment:
+  # Repo root (DOCKFLOW_ROOT). Defaults to the in-image path inside setup_MD_from_PDB.sh when unset here.
+  dockflow_root: "/path/to/dockflow"  # default in code: null -> script default /usr/software/dockflow/
+  # Optional script sourced by setup_MD_from_PDB.sh to put AmberTools (tleap/cpptraj/reduce),
+  # propka3, and packmol-memgen on PATH for a bare-metal (non-image) run. Unset inside the image.
+  env_setup: null  # default in code: null  (DOCKFLOW_ENV_SETUP)

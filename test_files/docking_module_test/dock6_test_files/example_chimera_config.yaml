@@ -1,0 +1,47 @@
+# =============================================================================
+# UCSF Chimera Receptor Preparation Pipeline - Configuration File
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Core Pipeline Settings
+# -----------------------------------------------------------------------------
+# Absolute path to the raw input PDB file (must exist)
+input_pdb: "/path-to/dock6_test_files/1xgj_protein_nH_ncH.pdb"  # default in code: null; required
+
+
+# Directory where all output files (.pdb, .mol2, .dms, .log) will be saved
+out_dir: "/path-to/antioch-vs/test_files/docking_module_test/dock6_test_files/"  # default in code: current working directory
+
+# Vertex density for the generated DMS molecular surface (Default is 5 for DOCK6)
+density: 5  # default in code: 5
+
+# -----------------------------------------------------------------------------
+# Execution Environment
+# -----------------------------------------------------------------------------
+# Choose ONE mode: "singularity", "micromamba", or "local"
+execution_mode: "singularity"  # default in code: local
+
+# =============================================================================
+# Mode-Specific Settings (Only the active mode's settings are required)
+# =============================================================================
+
+# --- Option A: Singularity Settings (Active) ---
+# Absolute path to the pre-compiled Singularity image (.sif)
+sif_image: "/path-to/chimera_frozen.sif"  # default in code: null
+
+# Host directories to bind-mount into the container so it can access external files.
+# The pipeline automatically mounts the specific input/output/script folders, 
+# but any specific top-level storage partitions must be explicitly mapped here.
+sif_binds:  # default in code: []
+  - "/path-to-input-folder"
+  - "/path-to-software-folder"
+
+# --- Option B: Micromamba Settings (Commented Out) ---
+# Uncomment and use this if execution_mode is set to "micromamba"
+# mamba_env: "chimera_env"
+
+# --- Option C: Local/Native Settings ---
+# The baseline command used to invoke UCSF Chimera inside the container or env.
+# Leave as "chimera" unless you are running in "local" mode and need to provide 
+# a direct absolute path to the binary (e.g., /opt/UCSF_chimera/bin/chimera).
+chimera_cmd: "chimera"  # default in code: chimera

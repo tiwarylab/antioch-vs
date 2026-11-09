@@ -1,0 +1,23 @@
+paths:
+  # The bundled JAK2 kinase-domain query. Replace with paths.sequence_file to
+  # use your own FASTA instead.
+  sequence: "GSDPTQFEERHLKFLQQLGKGNFGSVEMCRYDPLQDNTGEVVAVKKLQHSTEEHLRDFEREIEILKSLQHDNIVKYKGVCYSAGRRNLKLIMEYLPYGSLRDYLQKHKERIDHIKLLQYTSQICKGMEYLGTKRYIHRDLATRNILVENENRVKIGDFGLTKVLPQDKEYYKVKEPGESPIFWYAPESLTESKFSVASDVWSFGVVLYELFTYIEKSKSPPAEFMRMIGNDKQGQMIVFHLIELLKNNGRLPRPDGCPDEIYMIMTECWNNNVNQRPSFRDLALRVDQIRDNMAG"
+  sequence_file: null
+  # Must be a new directory unless execution.overwrite is true.
+  output_dir: "/path/to/localcolabfold_msa_only_test"
+
+environment:
+  localcolabfold_cmd: "colabfold_batch"
+
+execution:
+  overwrite: false
+
+localcolabfold:
+  mode: "msa_only"
+  msa_mode: "mmseqs2_uniref_env"
+  extra_args: []
+
+# MSA-only mode uses exactly one run entry as a summary label. It writes one
+# deep A3M directly in output_dir and does not predict structures.
+runs:
+  - name: "deep_msa"

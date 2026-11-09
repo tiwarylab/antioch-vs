@@ -1,0 +1,35 @@
+**/__pycache__/
+
+# --- Tooling caches (ruff, pytest) ---
+.ruff_cache/
+.pytest_cache/
+
+# --- Secrets (Constitution Principle XI: never commit credentials) ---
+# Environment / local secret files
+.env
+.env.*
+!.env.example
+*.local.env
+secrets.*
+*_secrets.*
+
+# Keys and certificates
+*.pem
+*.key
+*.p12
+*.pfx
+*.keytab
+id_rsa*
+id_ed25519*
+*.ppk
+
+# Credential / auth files
+.netrc
+.htpasswd
+*credentials*.json
+*service-account*.json
+*service_account*.json
+
+# --- Local machine state ---
+# macOS finder metadata (matches at any depth)
+.DS_Store

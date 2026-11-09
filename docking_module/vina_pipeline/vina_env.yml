@@ -1,0 +1,19 @@
+name: docking_pipeline
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python>=3.11,<3.12
+  - numpy
+  - scipy
+  - biopython
+  - pdbfixer
+  - openmm
+  - pyyaml
+  - mdanalysis
+  - gemmi
+  - tqdm
+  - rdkit
+  - meeko
+  - prody
+  - pyarrow

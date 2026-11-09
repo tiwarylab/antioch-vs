@@ -1,0 +1,40 @@
+paths:
+  sequence: null
+  # FASTA input, or a precomputed .a3m alignment. A3M input is copied to an
+  # isolated A3M-only workspace before LocalColabFold runs, preventing nearby
+  # FASTA files from triggering a public MSA-server query.
+  sequence_file: "/path/to/query.fasta"
+  output_dir: "/path/to/localcolabfold_output"
+
+environment:
+  localcolabfold_cmd: "colabfold_batch"
+
+execution:
+  overwrite: false
+  # Optional path. Relative paths are placed under output_dir.
+  log_file: null
+
+localcolabfold:
+  # Choose predict, msa_only, or prediction_only. predict is the usual
+  # end-to-end mode: it generates one deep A3M from a sequence or FASTA, then
+  # reuses it for every planned reduced-MSA prediction run. msa_only creates
+  # just that deep A3M and requires one runs entry. prediction_only requires
+  # paths.sequence_file to point to a deep A3M and runs predictions only.
+  mode: "predict"
+  num_seeds: 32
+  num_recycles: 1
+  use_dropout: true
+  save_all: true
+  msa_mode: null
+  model_type: null
+  extra_args: []
+
+# Each entry writes to output_dir/runs/<name>/. Run one entry, or add several
+# reduced-MSA settings to generate a combined prediction ensemble in one launch.
+runs:
+  - name: "rmsa_8_16"
+    settings:
+      max_msa: "8:16"
+  - name: "rmsa_16_32"
+    settings:
+      max_msa: "16:32"

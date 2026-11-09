@@ -1,0 +1,36 @@
+paths:
+  receptor_dms: "/path-to/dock6_test_files/1xgj_protein_nH_ncH_surf_d5.dms"  # default in code: null; required; Generated from Chimera Pipeline
+  receptor_mol2: "/path-to/dock6_test_files/1xgj_protein_nH_ncH_wH_wcH.mol2"  # default in code: null; required; Generated from Chimera Pipeline
+  ref_ligand_mol2: "/path-to/dock6_test_files/1xgj_ligand_nH_ncH.mol2"  # default in code: null; required; Used to select binding site spheres
+  ligand_file: "/path-to/dock6_test_files/1xgj_min_scored.mol2"  # default in code: null; required; Single .mol2 or multi-mol2 library
+  output_dir: "/path-to/dock6_test_files"  # default in code: null; required
+
+parameters:
+  sphere_radius: 10.0  # default in code: 10.0
+  box_margin: 8.0  # default in code: 8.0
+  max_orientations: 1000  # default in code: 1000
+
+environment:
+  # Native mode: absolute path to the host DOCK6 installation folder.
+  # Singularity mode: path to the DOCK6 installation inside the image.
+  dock6_dir: "/path-to/dock6/"  # default in code: /usr/local/dock6
+
+  # Uncomment to run all DOCK6 commands from a Singularity image.
+  # sif_image: "/path-to/dock6.sif"
+  # singularity_binds:
+  #   - "/path-to/dock6_test_files"
+
+  # Optional overrides. These original command names are used by default.
+  # container_commands:
+  #   sphgen: "sphgen"
+  #   sphere_selector: "sphere_selector"
+  #   showbox: "showbox"
+  #   grid: "grid"
+  #   dock6: "dock6"
+
+  # Optional MPI support for the final flexible-docking step only.
+  # Use Slurm tasks for MPI, for example:
+  #   #SBATCH --ntasks=32
+  #   #SBATCH --cpus-per-task=1
+  # dock6_launcher: "srun --mpi=pmix -n ${SLURM_NTASKS}"
+  # dock6_executable: "/absolute/path/to/dock6/bin/dock6.mpi"

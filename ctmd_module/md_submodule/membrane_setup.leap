@@ -1,0 +1,35 @@
+### membrane_setup.leap - AMBER topology for a Packmol-Memgen-packed membrane system.
+###
+### Consumed by setup_MD_from_PDB.sh, which fills in three things at the substitution points below:
+### the packed-system PDB name, the CPPTRAJ-detected disulfide bond lines, and the periodic box edges
+### from the Packmol-Memgen CRYST1 record. (The substitution tokens appear ONLY at those points - do not
+### mention them again in comments, or the text replacement would hit the comment too.)
+###
+### Force field: ff14SB + Lipid21 + GAFF2 + TIP3P, kept consistent with the soluble setup.leap and the
+### rest of the pipeline. The protein is already protonated upstream (PROPKA/Reduce), so tleap only
+### assigns parameters here - it must not re-protonate.
+
+### protein + lipid + ligand + water force fields
+source leaprc.protein.ff14SB
+source leaprc.lipid21
+source leaprc.gaff2
+source leaprc.water.tip3p
+
+### ions frcmod for the TIP3P model
+loadamberparams frcmod.ionsjc_tip3p
+
+### needed so we can use the igb=8 model downstream
+set default PBradii mbondi3
+
+### load the packed membrane system (protein + POPC + water + ions)
+rec = loadpdb PDBFILE
+
+DISULFIDE_BONDS
+
+### set the periodic box from the packing step
+set rec box { BOX_DIMS }
+
+### write the packed pdb and the topology + coordinates
+savepdb rec system.pdb
+saveamberparm rec system.prmtop system.inpcrd
+quit

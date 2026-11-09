@@ -1,0 +1,17 @@
+name: dockflow-post-docking
+channels:
+  - conda-forge
+dependencies:
+  - python>=3.10
+  - pandas
+  - matplotlib
+  - pyarrow
+  - tqdm
+  - openbabel
+  - meeko
+  - rdkit
+  - mdanalysis
+  - prolif
+  # Test runner. This is the environment the suite runs in, because
+  # test_calculate_enrichment.py needs pandas from this file.
+  - pytest

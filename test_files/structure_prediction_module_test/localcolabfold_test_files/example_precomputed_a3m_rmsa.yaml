@@ -1,0 +1,37 @@
+paths:
+  sequence: null
+  # A valid A3M with the query sequence first. LocalColabFold will reuse it
+  # directly and will not call the public MSA server.
+  sequence_file: "test_files/structure_prediction_module_test/localcolabfold_test_files/3LPB.a3m"
+  output_dir: "/path/to/localcolabfold_output"
+
+environment:
+  localcolabfold_cmd: "colabfold_batch"
+
+execution:
+  overwrite: false
+
+localcolabfold:
+  mode: "prediction_only"
+  num_seeds: 1
+  num_recycles: 1
+  use_dropout: false
+  save_all: false
+  # A precomputed A3M is supplied, so do not request an MSA-server mode.
+  msa_mode: null
+  model_type: null
+  extra_args:
+    - "--data"
+    # Cache root, which contains the params/ directory.
+    - "/path/to/colabfold_cache"
+
+runs:
+  - name: "rmsa_8_16"
+    settings:
+      max_msa: "8:16"
+  - name: "rmsa_16_32"
+    settings:
+      max_msa: "16:32"
+  - name: "rmsa_32_64"
+    settings:
+      max_msa: "32:64"

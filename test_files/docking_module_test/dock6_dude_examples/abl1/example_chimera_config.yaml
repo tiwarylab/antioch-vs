@@ -1,0 +1,19 @@
+input_pdb: "test_files/docking_module_test/dock6_dude_examples/abl1/prepared/2hzi_receptor_prepared.pdb"  # default in code: null; required
+out_dir: "test_files/docking_module_test/dock6_dude_examples/abl1/chimera_out"  # default in code: current working directory
+density: 5  # default in code: 5
+
+# Choose one mode: "singularity", "micromamba", or "local".
+execution_mode: "local"  # default in code: local
+
+# Singularity mode example:
+# execution_mode: "singularity"
+# sif_image: "/absolute/path/to/chimera_frozen.sif"
+# sif_binds:
+#   - "/absolute/path/to/project_or_storage"
+
+# Micromamba mode example:
+# execution_mode: "micromamba"
+# mamba_env: "chimera_env"
+
+# Local mode command, or command inside the selected container/env.
+chimera_cmd: "chimera"  # default in code: chimera

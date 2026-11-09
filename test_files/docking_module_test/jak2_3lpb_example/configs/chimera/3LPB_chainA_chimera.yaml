@@ -1,0 +1,12 @@
+input_pdb: "dock6_inputs/chainA/3LPB_chainA_receptor_prepared.pdb"  # default in code: null; required
+out_dir: "dock6_chimera/chainA"  # default in code: current working directory
+density: 5  # default in code: 5
+
+# Choose one execution mode: "singularity", "micromamba", or "local".
+execution_mode: "local"  # default in code: local
+chimera_cmd: "chimera"  # default in code: chimera
+
+# If using Singularity, set these for your system.
+sif_image: "/path/to/chimera.sif"  # default in code: null
+sif_binds:  # default in code: []
+  - "/path/to/project"

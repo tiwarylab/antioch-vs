@@ -1,0 +1,25 @@
+paths:
+  receptor_pdbqt: ""  # Optional pre-prepared receptor PDBQT.
+  receptor_pdb: "/path/to/raw_receptor.pdb"  # Required when receptor_pdbqt is blank.
+  ligand_dir: "/path/to/ligands"  # Required directory of ligand PDBQT files.
+  output_dir: "/path/to/output"  # Required.
+  target_residues_file: "./interface_residues.csv"  # Required only for an auto box.
+  pocket_definition: null  # Optional ANTIOCH-VS best-pocket YAML; overrides box.center and box.size.
+
+box:
+  center: "auto"
+  size: "auto"
+  padding: [0, 0, 15.0]
+  target_chain: "A"
+
+docking:
+  thread: 8000
+  search_depth: 40
+  num_modes: 10
+
+environment:
+  mamba_env: "docking_pipeline"
+  mamba_exe: "micromamba"
+  vina_gpu_bin: "/path/to/AutoDock-Vina-GPU-2-1"
+  vina_gpu_cmd: "run_gpu"  # Used only when vina_gpu_bin is a .sif image.
+  singularity_binds: []

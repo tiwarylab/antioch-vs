@@ -1,0 +1,22 @@
+# Case 4: AutoDock Vina default - From UMF directly
+# ── All molecules → PDBQT, one file per molecule, single output folder ──
+
+source:
+  type: "umf"
+  path: "input_data/example.umf"
+
+# Likely will be ignored, but no loss to have
+smiles_conversion:
+  cpus: 16
+  batch_size: 4096
+
+processing:
+  target_format: "pdbqt"
+  output_dir: "case4_pdbqt_single_fromUMF"
+  num_blocks: 1
+  split_files: true
+  scratch_dir: "./scratch/"
+
+logging:
+  log_file: "ligprep_case4.log"
+  verbose: true

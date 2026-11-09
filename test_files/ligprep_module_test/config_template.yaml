@@ -1,0 +1,43 @@
+# Ligand Preparation Configuration
+# ================================
+# Drives ligprep_pipeline.py — converts SMILES or UMF files into docking-ready
+# PDBQT / Mol2 formats via the UMDFP toolkit.
+
+# ── UMDFP binary paths ───────────────────────────────────────────────
+# Point these at your UMDFP installation.  Default assumes symlinks in
+# <dockflow_root>/UMDFP/bin/ are on PATH or relative to this config.
+umdfp:
+  smiles2umd: "smiles2umd"        # SMILES → UMD  (Python script)
+  umfgen:     "umfgen"            # UMD  → UMF   (C++ binary)
+  umfdump:    "umfdump"           # UMF  → pdbqt/mol2/sdf/smi/umd  (C++ binary)
+  python:     "python3"           # interpreter for smiles2umd
+
+# ── Source ───────────────────────────────────────────────────────────
+source:
+  type: "smiles"   # "smiles" | "umf"
+  path: "input_ligands.smi"   # .smi file (if smiles) or .umf file (if umf)
+
+# ── SMILES → UMD conversion ────────────────────────────────────────
+# Only used when source.type == "smiles"
+smiles_conversion:
+  cpus: 12                # parallel CPUs for smiles2umd (-c flag)
+  batch_size: 4096        # molecules loaded into memory per batch (-b flag)
+  charge_method: "am1bcc" # OpenFF partial charge method (default am1bcc)
+
+# ── UMF intermediate (when converting from SMILES) ────────────────
+umf_intermediate:
+  dir: "."                # where to write the temporary .umd / .umf files
+  suffix: ""              # optional suffix appended to intermediate filenames
+
+# ── Processing ─────────────────────────────────────────────────────
+processing:
+  target_format: "pdbqt"  # pdbqt | mol2 | sdf | smi | umd
+  output_dir: "prepared_ligands"
+  num_blocks: 1           # split the database into N folders (1 = no splitting)
+  split_files: true       # one file per molecule (true) or all in one file (false)
+  scratch_dir: "./scratch/"
+
+# ── Logging ────────────────────────────────────────────────────────
+logging:
+  log_file: "ligprep_execution.log"
+  verbose: true

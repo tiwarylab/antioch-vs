@@ -1,0 +1,141 @@
+#!/bin/bash
+
+submit_slurm()
+{
+        if test -f "$1"
+        then
+                echo "Submitting $1"
+        else
+                echo "Error: File $1 not found"
+                return 1
+        fi
+
+        if test -f "$DOCKFLOW_ROOT/common_module/cluster.conf"
+        then
+                cp $DOCKFLOW_ROOT/common_module/cluster.conf .
+        else
+                "$DOCKFLOW_ROOT/common_module/query_cluster.sh" "./cluster.conf"
+        fi
+
+        if test -f "cluster.conf"
+        then
+                # Capture autosubmit output; extract job ID from its stdout
+                _slurm_output=$(python3 "$DOCKFLOW_ROOT/common_module/autosubmit.py" $@ --config cluster.conf 2>&1) || return 1
+                job_id=$(echo "$_slurm_output" | grep -oP 'Job ID: \K\d+' || true)
+                if [ -z "$job_id" ]; then
+                        echo "[!] Could not extract job ID from autosubmit output"
+                        return 1
+                fi
+                echo "$job_id"
+                return 0
+        else
+                echo "Slurm querying failed. Submit start_MD.sh manually to start the MD"
+		return 1
+        fi
+}
+
+# Safety check against `dockflow pipeline init`
+for p in $@
+do
+        if [ "$p" == "init" ]; then
+                echo "Pipeline cannot be called along with 'init'. First run \`dockflow init\`"
+                exit 1
+        fi
+done
+
+set -euo pipefail # Now stop with any failure
+
+submitted_jobs=""
+if test -f "ligand_files/DOCKING_SUBMITTED"
+then
+    echo "Docking was submitted earlier. Assuming docking is complete"
+    $DOCKFLOW_ROOT/full_pipeline/dockflow postprocess_docking # Docking -> Mol2 for CTMD
+elif test -f "ligand_files/docking_folders.txt"
+then
+    echo "Starting from the docking step. Found 'ligand_files/docking_folders.txt'"
+    cd ligand_files
+    folder_names=`cat docking_folders.txt`
+    echo "Found folders: $folder_names"
+    for fol in $folder_names
+    do
+        if test -d "$fol"
+        then
+                echo "#!/bin/bash" > $fol/temp.sh
+                echo "module load singularity" >> $fol/temp.sh
+                echo "singularity exec --nv --bind ../..:/mnt $DOCKFLOW_ROOT/dockflow_unified.sif /mnt/ligand_files/$fol/start_docking.sh" >> $fol/temp.sh
+
+		cd $fol
+		cpu_header_text=`cat $DOCKFLOW_ROOT/common_module/CPU_HEADER.slurm|head -1`
+                if [ "$cpu_header_text" == "NOT_PROVIDED" ]; then
+                        echo "WARN: No CPU header provided. Will attempt to generate slurm header, but this does NOT work universally. We recommend that you edit $DOCKFLOW_ROOT/common_module/CPU_HEADER.slurm and manually fill in the details following the provided template"
+                        jobid=`submit_slurm temp.sh --nogpu --num-cpus 24` # Only use CPU
+                else
+                        jobid=`submit_slurm temp.sh --manual-header $DOCKFLOW_ROOT/common_module/CPU_HEADER.slurm` # Only use CPU
+                fi
+
+		cd ..
+                submitted_jobs=$submitted_jobs":$jobid"
+		touch ligand_files/DOCKING_SUBMITTED
+        else
+                echo "ERROR: Folder $fol was listed but not found in ligand_files"
+        fi
+    done
+elif test -f "receptor_files/SPIB_DONE"
+then
+    echo "SPIB completed. Setting up docking folders"
+    $DOCKFLOW_ROOT/full_pipeline/dockflow setup_docking # SPIB -> Docking Setup
+elif test -f "receptor_files/MD_SUBMITTED"
+then
+	echo "MD was submitted. Assuming MD is complete and proceeding"
+	$DOCKFLOW_ROOT/full_pipeline/dockflow runspib # MD -> SPIB
+	if test -d "receptor_files/clustered_output/cluster_center_structures/spib_results/"
+	then
+		touch receptor_files/SPIB_DONE
+	fi
+else
+    if test -f "receptor_files/dockflow_query.a3m"
+    then
+        echo "A3M already exists. Using receptor_file/dockflow_query.a3m"
+	rm -f receptor_files/SEQUENCE
+	touch receptor_files/A3M
+    else
+        $DOCKFLOW_ROOT/full_pipeline/dockflow prepseq # Seq -> A3M
+        if test -f "receptor_files/dockflow_query.a3m"
+        then
+                echo "Output A3M was found"
+        else
+                echo "Output A3M failed to be generated!"
+                exit 1
+        fi
+    fi
+    $DOCKFLOW_ROOT/full_pipeline/dockflow launch # A3M -> Structure+Clustered Output
+
+	if test -d "receptor_files/clustered_output/cluster_center_structures/"
+	then
+        	cd receptor_files/clustered_output/cluster_center_structures/
+	else
+        	echo "Clustering output was not generated. Please check relevant log files to identify the issue."
+	        exit 2
+	fi
+
+	receptor_folders=`ls -d receptor[0-9]* --color=none`
+	echo "Found the following receptor folders:"
+	echo $receptor_folders
+
+	for f in $receptor_folders
+	do
+        	cd $f
+	        if test -f "MD_COMPLETE"
+        	then
+                	echo "MD complete for $f. Skipping"
+	        else
+        	        jobid=`submit_slurm start_MD.sh`
+                	submitted_jobs=$submitted_jobs":$jobid"
+	        fi
+        	cd ..
+	done
+	touch /mnt/receptor_files/MD_SUBMITTED
+
+	echo "Final slurm command:"
+	echo "sbatch job.sh --dependency=afterany$submitted_jobs"
+fi
