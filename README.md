@@ -111,10 +111,26 @@ future expansion of the pipeline.
 
 ## Citation
 
-A manuscript describing ANTIOCH-VS is in preparation. Once the preprint is posted,
-the arXiv link and full citation will be added here.
+If you use ANTIOCH-VS in your work, please cite:
 
-<!-- arXiv: link to be added when the preprint is public -->
+> Hasdemir, H. S., Adury, V. S. S., & Tiwary, P. (2026). *ANTIOCH-VS: From Sequence
+> to Hits with Modular, Open-Source Ensemble Virtual Screening.* arXiv:2611.14287.
+> https://arxiv.org/abs/2611.14287
+
+BibTeX:
+
+```bibtex
+@misc{hasdemir2026antiochvs,
+  title         = {ANTIOCH-VS: From Sequence to Hits with Modular, Open-Source Ensemble Virtual Screening},
+  author        = {Hasdemir, Hale S. and Adury, Venkata Sai Sreyas and Tiwary, Pratyush},
+  year          = {2026},
+  eprint        = {2611.14287},
+  archivePrefix = {arXiv},
+  primaryClass  = {physics.chem-ph},
+  doi           = {10.48550/arXiv.2611.14287},
+  url           = {https://arxiv.org/abs/2611.14287}
+}
+```
 
 ## License
 
