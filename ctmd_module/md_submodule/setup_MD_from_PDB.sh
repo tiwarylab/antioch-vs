@@ -221,6 +221,15 @@ if test -f "system.inpcrd" && test -f "system.prmtop"
 then
     echo "Setup completed successfully."
     cp -r "$DOCKFLOW_ROOT/ctmd_module/md_submodule/amber_MD_template" .
+    cd amber_MD_template
+    if [ "$MEMBRANE" -eq 1 ]; then
+	    cp 05_Back_membrane.in 05_Back.in
+	    cp 06_Calpha_membrane.in 06_Calpha.in
+	    cat 06p5_Prod_membrane.in|sed s/"nstlim=2500000"/"nstlim=MD_STEPS"/ > 06p5_Prod_template.in
+    else
+	    cat 06p5_Prod.in|sed s/"nstlim=2500000"/"nstlim=MD_STEPS"/ > 06p5_Prod_template.in
+    fi
+    cd ..
     # start_MD.sh is the in-SIF launcher (singularity exec of the AmberTools image). It is only written
     # when the SIF's system.conf is present; a bare-metal run uses its own MD runner and doesn't need it,
     # so a missing system.conf is NOT a failure (the topology already built successfully above).

@@ -11,7 +11,7 @@
 time_lag: null
 
 # Sweep over log-spaced time lags: [MIN, MAX, POINTS]
-# sweep: [50, 5000, 12]
+sweep: [50, 5000, 12]
 
 # --- Label Initialization ---
 # "split" (default) or "tica:N" (e.g. "tica:4")

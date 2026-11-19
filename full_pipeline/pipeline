@@ -46,7 +46,11 @@ done
 set -euo pipefail # Now stop with any failure
 
 submitted_jobs=""
-if test -f "ligand_files/DOCKING_SUBMITTED"
+if test -d "ligand_files/final_collection"
+then
+        echo "Post processed ligand list found. Setting up CTMD"
+        $DOCKFLOW_ROOT/full_pipeline/dockflow stage_ctmd
+elif test -f "ligand_files/DOCKING_SUBMITTED"
 then
     echo "Docking was submitted earlier. Assuming docking is complete"
     $DOCKFLOW_ROOT/full_pipeline/dockflow postprocess_docking # Docking -> Mol2 for CTMD
