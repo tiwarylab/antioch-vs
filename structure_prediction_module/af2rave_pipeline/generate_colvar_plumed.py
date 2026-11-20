@@ -492,7 +492,15 @@ def process_folder(
         try:
             atom1, atom2 = parse_feature_name(fname)
             idx1 = find_atom_index(universe, atom1)
+            if idx1 is None:
+                print(atom1,"was replaced")
+                atom1["chainid"]=""
+                idx1 = find_atom_index(universe, atom1)
             idx2 = find_atom_index(universe, atom2)
+            if idx2 is None:
+                print(atom2,"was replaced")
+                atom2["chainid"]=""
+                idx2 = find_atom_index(universe, atom2)
 
             if idx1 is None or idx2 is None:
                 failures.append(fname)
@@ -792,6 +800,7 @@ Examples:
 
     # Exit with error if any failures
     if any(r["status"] == "failed" for r in results):
+        print("Some results might have failed. This could be harmless. Halting the pipeline here. Please check COLVAR_generation.log (or stdout if running outside the pipeline) and remove any offending folders")
         sys.exit(1)
 
 

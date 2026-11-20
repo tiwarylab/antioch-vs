@@ -253,42 +253,53 @@ sed -i 's|-c bcc |-c bcc -pl 10 |g' "$INPUT_DIR/_setup.sh"
 echo "  Scripts copied and patched."
 echo ""
 
-# ---------------------------------------------------------------------------
-# Step 2b: Compute protein net charge and patch setup.leap for neutralization
-# ---------------------------------------------------------------------------
-echo "--- Step 2b: Computing protein charge ---"
+
+if test $MEMBRANE -eq 1
+then
+	# ---------------------------------------------------------------------------
+	# Step 2b (alternate for membrane): Setup membrane with packmol-memgen and exit
+	# ---------------------------------------------------------------------------
+	echo "--- Step 2b: Embed protein in membrane ---"
+	cd $INPUT_DIR
+	$CTMD_SRC/md_submodule/pack_membrane rec_prepped.pdb
+	cp "$CTMD_SRC/reprep.leap" .
+else
+	# ---------------------------------------------------------------------------
+	# Step 2b: Compute protein net charge and patch setup.leap for neutralization
+	# ---------------------------------------------------------------------------
+	echo "--- Step 2b: Computing protein charge ---"
 
 # Use tleap to generate a temporary prmtop, then parmed (Python) to read charge.
 # This requires chem_env (tleap + parmed). Both are available there.
-TMP_LEAP=$(mktemp /tmp/charge_test_XXXXXX.leap)
-TMP_PRMTOP=$(mktemp /tmp/charge_test_XXXXXX.prmtop)
-TMP_INPCRD=$(mktemp /tmp/charge_test_XXXXXX.inpcrd)
+	TMP_LEAP=$(mktemp /tmp/charge_test_XXXXXX.leap)
+	TMP_PRMTOP=$(mktemp /tmp/charge_test_XXXXXX.prmtop)
+	TMP_INPCRD=$(mktemp /tmp/charge_test_XXXXXX.inpcrd)
 
-cat > "$TMP_LEAP" << LEAPEOF
-source leaprc.protein.ff14SB
-rec = loadpdb $INPUT_DIR/rec_prepped.pdb
-saveamberparm rec $TMP_PRMTOP $TMP_INPCRD
-quit
+	cat > "$TMP_LEAP" << LEAPEOF
+	source leaprc.protein.ff14SB
+	rec = loadpdb $INPUT_DIR/rec_prepped.pdb
+	saveamberparm rec $TMP_PRMTOP $TMP_INPCRD
+	quit
 LEAPEOF
 
-tleap -s -f "$TMP_LEAP" > /dev/null 2>&1
-if [ $? -ne 0 ] || [ ! -f "$TMP_PRMTOP" ]; then
-    echo ""
-    echo "ERROR: tleap failed to generate prmtop for charge calculation."
-    echo "  Leap input : $TMP_LEAP"
-    echo "  Expected   : $TMP_PRMTOP"
-    echo ""
-    echo "Common causes:"
-    echo "  - rec_prepped.pdb has bad residue names or missing atoms"
-    echo "  - Force field (leaprc.protein.ff14SB) not found in chem_env"
-    echo "  - tleap crashed (check for segfaults with valgrind if needed)"
-    echo ""
-    rm -f "$TMP_LEAP" "$TMP_PRMTOP" "$TMP_INPCRD"
-    exit 1
-fi
+	tleap -s -f "$TMP_LEAP" > /dev/null 2>&1
+	if [ $? -ne 0 ] || [ ! -f "$TMP_PRMTOP" ]; then
+	    echo ""
+	    echo "ERROR: tleap failed to generate prmtop for charge calculation."
+	    echo "  Leap input : $TMP_LEAP"
+	    echo "  Expected   : $TMP_PRMTOP"
+	    echo ""
+	    echo "Common causes:"
+	    echo "  - rec_prepped.pdb has bad residue names or missing atoms"
+	    echo "  - Force field (leaprc.protein.ff14SB) not found in chem_env"
+	    echo "  - tleap crashed (check for segfaults with valgrind if needed)"
+	    echo ""
+	    rm -f "$TMP_LEAP" "$TMP_PRMTOP" "$TMP_INPCRD"
+	    exit 1
+	fi
 
-# Read net charge via parmed (sum of per-atom charges), round to nearest int
-PROT_CHARGE=$(python3 -c "
+	# Read net charge via parmed (sum of per-atom charges), round to nearest int
+	PROT_CHARGE=$(python3 -c "
 import parmed as pmd, sys
 try:
     s = pmd.load_file('$TMP_PRMTOP')
@@ -297,50 +308,51 @@ try:
 except Exception as e:
     print(f'ERROR: {e}', file=sys.stderr)
     sys.exit(1)
-") || {
-    echo ""
-    echo "ERROR: Failed to read protein charge from prmtop via parmed."
-    echo "  File: $TMP_PRMTOP"
-    echo ""
-    rm -f "$TMP_LEAP" "$TMP_PRMTOP" "$TMP_INPCRD"
-    exit 1
-}
+	") || {
+	    echo ""
+	    echo "ERROR: Failed to read protein charge from prmtop via parmed."
+	    echo "  File: $TMP_PRMTOP"
+	    echo ""
+	    rm -f "$TMP_LEAP" "$TMP_PRMTOP" "$TMP_INPCRD"
+	    exit 1
+	}
 
-rm -f "$TMP_LEAP" "$TMP_PRMTOP" "$TMP_INPCRD"
+	rm -f "$TMP_LEAP" "$TMP_PRMTOP" "$TMP_INPCRD"
 
-echo "  Protein net charge: $PROT_CHARGE"
+	echo "  Protein net charge: $PROT_CHARGE"
 
-# Determine which ion and how many to neutralize
-if [ "$PROT_CHARGE" -gt 0 ]; then
-    ION_TYPE="Cl-"
-    ION_COUNT=$PROT_CHARGE
-elif [ "$PROT_CHARGE" -lt 0 ]; then
-    ION_TYPE="Na+"
-    ION_COUNT=$(( -PROT_CHARGE ))
-else
-    ION_TYPE=""
-    ION_COUNT=0
+	# Determine which ion and how many to neutralize
+	if [ "$PROT_CHARGE" -gt 0 ]; then
+	    ION_TYPE="Cl-"
+	    ION_COUNT=$PROT_CHARGE
+	elif [ "$PROT_CHARGE" -lt 0 ]; then
+	    ION_TYPE="Na+"
+	    ION_COUNT=$(( -PROT_CHARGE ))
+	else
+	    ION_TYPE=""
+	    ION_COUNT=0
+	fi
+
+	if [ "$ION_COUNT" -gt 0 ]; then
+	    echo "  Neutralizing with $ION_COUNT x $ION_TYPE"
+
+	    # Patch setup.leap: uncomment the matching addions line and set count,
+	    # comment out the other ion line.
+	    if [ "$PROT_CHARGE" -gt 0 ]; then
+        	# Positive protein → needs Cl- counterions
+	        sed -i "s|^ # addions solvcomplex Cl- .*| addions solvcomplex Cl- $ION_COUNT|" "$INPUT_DIR/setup.leap"
+	        sed -i "s|^ # addions solvcomplex Na+ .*| # addions solvcomplex Na+ 0|" "$INPUT_DIR/setup.leap"
+	    else
+        	# Negative protein → needs Na+ counterions
+	        sed -i "s|^ # addions solvcomplex Cl- .*| # addions solvcomplex Cl- 0|" "$INPUT_DIR/setup.leap"
+	        sed -i "s|^ # addions solvcomplex Na+ .*| addions solvcomplex Na+ $ION_COUNT|" "$INPUT_DIR/setup.leap"
+	    fi
+	else
+	    echo "  Protein is neutral — no ions needed."
+	fi
+
+	echo ""
 fi
-
-if [ "$ION_COUNT" -gt 0 ]; then
-    echo "  Neutralizing with $ION_COUNT x $ION_TYPE"
-
-    # Patch setup.leap: uncomment the matching addions line and set count,
-    # comment out the other ion line.
-    if [ "$PROT_CHARGE" -gt 0 ]; then
-        # Positive protein → needs Cl- counterions
-        sed -i "s|^ # addions solvcomplex Cl- .*| addions solvcomplex Cl- $ION_COUNT|" "$INPUT_DIR/setup.leap"
-        sed -i "s|^ # addions solvcomplex Na+ .*| # addions solvcomplex Na+ 0|" "$INPUT_DIR/setup.leap"
-    else
-        # Negative protein → needs Na+ counterions
-        sed -i "s|^ # addions solvcomplex Cl- .*| # addions solvcomplex Cl- 0|" "$INPUT_DIR/setup.leap"
-        sed -i "s|^ # addions solvcomplex Na+ .*| addions solvcomplex Na+ $ION_COUNT|" "$INPUT_DIR/setup.leap"
-    fi
-else
-    echo "  Protein is neutral — no ions needed."
-fi
-
-echo ""
 
 # ---------------------------------------------------------------------------
 # Step 3: Create directory structure
@@ -465,6 +477,14 @@ FAIL=0
 for molfile in "${LIGANDS[@]}"; do
     name="${molfile%.mol2}"
     d="$INPUT_DIR/$name"
+    if test $MEMBRANE -eq 1
+    then
+	    cd $d
+	    rm -f system.pdb system.prmtop system.inpcrd
+	    cp ../reprep.leap ../protein_packed.pdb .
+	    tleap -f reprep.leap
+	    cd ../..
+    fi
     if [ -f "$d/system.pdb" ] && [ -f "$d/system.prmtop" ] && [ -f "$d/system.inpcrd" ]; then
         echo "  $name — system.pdb, system.prmtop, system.inpcrd ready"
         SUCCESS=$((SUCCESS + 1))
